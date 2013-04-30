@@ -64,6 +64,7 @@
     <Compile Include="proxy.ashx.cs">
       <DependentUpon>proxy.ashx</DependentUpon>
     </Compile>
+    <Compile Include="ProxyConfig.cs" />
     <Compile Include="ServerUrl.cs" />
   </ItemGroup>
   <ItemGroup>

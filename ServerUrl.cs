@@ -31,6 +31,9 @@ namespace Proxy
 		/// </summary>
 		[XmlAttribute("token")]
 		public string Token { get; set; }
+
+		[XmlAttribute("dynamicToken")]
+		public bool DynamicToken { get; set; }
 	}
 
 }
