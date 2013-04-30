@@ -151,7 +151,7 @@ namespace Proxy
 
 			if (mustMatch)
 			{
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("The \"mustMatch\" option is specified in proxy.config, but no matching URLs were found.");
 			}
 
 			return string.Empty;
