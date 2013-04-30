@@ -1,3 +1,4 @@
+using System;
 /*
   This proxy page does not have any security checks. It is highly recommended
   that a user deploying this proxy page on their web server, add appropriate
@@ -34,6 +35,21 @@ namespace Proxy
 
 		[XmlAttribute("dynamicToken")]
 		public bool DynamicToken { get; set; }
+
+		/// <summary>
+		/// The expiration date of a dynamic token.
+		/// </summary>
+		[XmlIgnore]
+		public DateTime? TokenExpires { get; set; }
+
+		[XmlIgnore]
+		public bool TokenExpired
+		{
+			get
+			{
+				return TokenExpires.HasValue && DateTime.Now < TokenExpires.Value;
+			}
+		}
 	}
 
 }
