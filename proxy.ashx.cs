@@ -258,33 +258,4 @@ namespace Proxy
 			return string.Empty;
 		}
 	}
-
-	public class ServerUrl
-	{
-		string url;
-		bool matchAll;
-		string token;
-
-		[XmlAttribute("url")]
-		public string Url
-		{
-			get { return url; }
-			set { url = value; }
-		}
-
-		[XmlAttribute("matchAll")]
-		public bool MatchAll
-		{
-			get { return matchAll; }
-			set { matchAll = value; }
-		}
-
-		[XmlAttribute("token")]
-		public string Token
-		{
-			get { return token; }
-			set { token = value; }
-		}
-	}
-
 }
