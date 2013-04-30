@@ -1,1 +1,1 @@
-<%@ WebHandler Language="C#" Class="proxy" CodeBehind="proxy.ashx.cs" %>
+<%@ WebHandler Language="C#" Class="Proxy.proxy" CodeBehind="proxy.ashx.cs" %>
