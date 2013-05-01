@@ -1,11 +1,11 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
-require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
+require(["require", "dojo/on", "dojo/_base/Color","esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer",
 	"esri/dijit/Attribution"],
-	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+	function (require, on, Color, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
 		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
@@ -62,6 +62,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			});
 			stopsLayer.setInfoTemplate(new InfoTemplate("Address", "${Name}"));
 			symbol = new SimpleMarkerSymbol();
+			symbol.setColor("00ccff");
 			stopsLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(stopsLayer);
 
@@ -70,6 +71,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 				id: "routes"
 			});
 			symbol = new SimpleLineSymbol();
+			symbol.setColor("00ccff");
 			routesLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(routesLayer);
 

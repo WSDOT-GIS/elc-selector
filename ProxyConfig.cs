@@ -124,18 +124,19 @@ namespace Proxy
 
 							// Get a new token.
 							var request = WebRequest.Create(url);
-							Token token;
+							string json;
 							using (var response = request.GetResponse())
 							{
 								using (var stream = response.GetResponseStream())
 								{
-									var serializer = new SS.JsonSerializer<Token>();
 									using (var reader = new StreamReader(stream))
 									{
-										token = serializer.DeserializeFromReader(reader);
+										json = reader.ReadToEnd();
 									}
 								}
 							}
+							var serializer = new SS.JsonSerializer<Token>();
+							Token token = serializer.DeserializeFromString(json);
 
 							// Set the server URL properties corresponding to the token.
 							su.Token = token.token;
