@@ -3,9 +3,10 @@
 require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
+	"esri/dijit/Basemap", "esri/dijit/BasemapLayer",
 	"esri/dijit/Attribution"],
-	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, Graphic,
-		InfoTemplate) {
+	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
 
@@ -34,7 +35,15 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 
 		// Create the map.
 		map = new Map("map", {
-			basemap: "streets",
+			//basemap: "streets",
+			basemap: new Basemap({
+				id: "Hybrid",
+				layers: [
+					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" }),
+					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer" }),
+					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer" })
+				]
+			}),
 			center: [-120.80566406246835, 47.41322033015946],
 			zoom: 7,
 			showAttribution: true
