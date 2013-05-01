@@ -13,16 +13,10 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			var output = [], address;
 			if (addressCandidate && addressCandidate.address) {
 				address = addressCandidate.address;
-				output.push(address.Address, "</br>");
+				output.push(address.Address, ", ");
 				output.push(address.City, ", ", address.Region, "  ", address.Postal);
 			}
 			return output.join("");
-		}
-
-		/** Converts an graphic with an addressCandidate graphic
-		*/
-		function addressCandidateGraphicToDL(/*Graphic*/ graphic) {
-			return addressCandidateToSingleLine(graphic.attributes.addressCandidate);
 		}
 
 		urlUtils.addProxyRule({
@@ -47,7 +41,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 
 
 			stopsLayer = new GraphicsLayer();
-			stopsLayer.setInfoTemplate(new InfoTemplate("Address", addressCandidateGraphicToDL));
+			stopsLayer.setInfoTemplate(new InfoTemplate("Address", "${Name}"));
 			stopsLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(stopsLayer);
 
@@ -64,7 +58,8 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
 						graphic.setAttributes({
-							addressCandidate: addressCandidate
+							// addressCandidate: addressCandidate
+							Name: addressCandidateToSingleLine(addressCandidate)
 						});
 						stopsLayer.add(graphic);
 					}, function (error) {

@@ -85,6 +85,7 @@
     <Content Include="proxy.ashx" />
     <Content Include="proxy.config" />
     <Content Include="packages.config" />
+    <Content Include="README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
