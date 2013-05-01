@@ -1,5 +1,5 @@
 ﻿/*global require*/
-/*jslint browser:true*/
+/*jslint browser:true, white:true*/
 require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/graphic", "esri/InfoTemplate",
@@ -7,7 +7,10 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, Graphic,
 		InfoTemplate) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, protocol = window.location.protocol;
+		var map, locator, routeTask, stopsLayer, protocol;
+
+		// Store the protocol (e.g., "https:")
+		protocol = window.location.protocol;
 
 		/**Converts an AddressCandidate into a string with the entire address on a single line.
 		* (e.g., "742 Evergreen Terrace, Springfield, NT  58008")
@@ -23,11 +26,13 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			return output.join("");
 		}
 
+		// Set the routing URL to use a proxy.  The proxy will handle getting tokens.
 		urlUtils.addProxyRule({
 			proxyUrl: "proxy.ashx",
 			urlPrefix: protocol + "//route.arcgis.com"
 		});
 
+		// Create the map.
 		map = new Map("map", {
 			basemap: "streets",
 			center: [-120.80566406246835, 47.41322033015946],
@@ -35,25 +40,28 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			showAttribution: true
 		});
 
-
-
+		// Create the event handler for when the map finishes loading...
 		on(map, "load", function () {
+			var symbol;
 
+			// Disable zooming on map double-click.  Double click will be used to create a route.
 			map.disableDoubleClickZoom();
 
-			var symbol = new SimpleMarkerSymbol();
-
-
+			// Create the graphics layer that will be used to show the stop graphics.
 			stopsLayer = new GraphicsLayer();
 			stopsLayer.setInfoTemplate(new InfoTemplate("Address", "${Name}"));
+			symbol = new SimpleMarkerSymbol();
 			stopsLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(stopsLayer);
 
+			// Setup the locator.
 			locator = new Locator(protocol + "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer");
 			locator.setOutSpatialReference(map.spatialReference);
 
+			// Setup the route task.
 			routeTask = new RouteTask(protocol + "//route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
 
+			// Setup the map click event that will call the geocoder service.
 			on(map, "click", function (evt) {
 				if (evt.mapPoint) {
 					locator.locationToAddress(evt.mapPoint, 100, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
@@ -69,6 +77,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 				}
 			});
 
+			// Setup the map double-click event to call the route service when two or more geocoded points are displayed on the map.
 			on(map, "DblClick", function (event) {
 				if (event.mapPoint && stopsLayer.graphics.length >= 2) {
 					require(["esri/tasks/RouteParameters", "esri/tasks/FeatureSet", "esri/units"],
