@@ -1,10 +1,4 @@
 using System;
-/*
-  This proxy page does not have any security checks. It is highly recommended
-  that a user deploying this proxy page on their web server, add appropriate
-  security checks, for example checking request path, username/password, target
-  url, etc.
-*/
 using System.Xml.Serialization;
 
 namespace Proxy
@@ -33,6 +27,9 @@ namespace Proxy
 		[XmlAttribute("token")]
 		public string Token { get; set; }
 
+		/// <summary>
+		/// If true, a token should be requested if not already present.
+		/// </summary>
 		[XmlAttribute("dynamicToken")]
 		public bool DynamicToken { get; set; }
 
@@ -43,7 +40,7 @@ namespace Proxy
 		public DateTime? TokenExpires { get; set; }
 
 		[XmlIgnore]
-		public bool TokenExpired
+		public bool TokenHasExpired
 		{
 			get
 			{

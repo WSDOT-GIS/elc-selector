@@ -1,9 +1,3 @@
-/*
-  This proxy page does not have any security checks. It is highly recommended
-  that a user deploying this proxy page on their web server, add appropriate
-  security checks, for example checking request path, username/password, target
-  url, etc.
-*/
 using System;
 using System.Configuration;
 using System.IO;
@@ -29,10 +23,10 @@ namespace Proxy
 
 			lock (_lockobject)
 			{
-				if (System.IO.File.Exists(fileName))
+				if (File.Exists(fileName))
 				{
 					XmlSerializer reader = new XmlSerializer(typeof(ProxyConfig));
-					using (System.IO.StreamReader file = new System.IO.StreamReader(fileName))
+					using (var file = new StreamReader(fileName))
 					{
 						config = (ProxyConfig)reader.Deserialize(file);
 					}
@@ -84,12 +78,19 @@ namespace Proxy
 			set { mustMatch = value; }
 		}
 
+		/// <summary>
+		/// Creates the token request URL.
+		/// </summary>
+		/// <param name="userName">User name</param>
+		/// <param name="password">password</param>
+		/// <param name="expires">Number of minutes until the token will expire</param>
+		/// <returns>Returns a <see cref="Uri"/>.</returns>
 		private static Uri CreateTokenRequestUrl(string userName, string password, int? expires=default(int?))
 		{
 			
 			if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
 			{
-				throw new ArgumentNullException("None of the following parameters should be null: userName, password, or referrer.", default(Exception));
+				throw new ArgumentNullException("None of the following parameters should be null: userName, password.", default(Exception));
 			}
 			string referrer = HttpContext.Current.Request.Url.ToString();
 			const string _tokenUrl = "https://www.arcgis.com/sharing/generateToken?username={0}&password={1}&referer={2}&expiration={3}&f=json";
@@ -117,7 +118,7 @@ namespace Proxy
 						// If the URL has the dynamic token attribute set to true,
 						// create a new token if there is no current token or if the 
 						// current token is expired.
-						if (su.Token == null || su.TokenExpired)
+						if (su.Token == null || su.TokenHasExpired)
 						{
 							var url = CreateTokenRequestUrl(agolUser, agolPW);
 
