@@ -1,10 +1,10 @@
 ﻿/*global require*/
 /*jslint browser:true*/
-require(["dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
+require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Attribution"],
-	function (on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, Graphic,
+	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, Graphic,
 		InfoTemplate) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, protocol = window.location.protocol;
@@ -38,8 +38,10 @@ require(["dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 		});
 
 
+
 		on(map, "load", function () {
 
+			map.disableDoubleClickZoom();
 
 			var symbol = new SimpleMarkerSymbol();
 
@@ -68,6 +70,30 @@ require(["dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 					}, function (error) {
 						window.console.error(error);
 					});
+				}
+			});
+
+			on(map, "DblClick", function (event) {
+				if (event.mapPoint && stopsLayer.graphics.length >= 2) {
+					require(["esri/tasks/RouteParameters", "esri/tasks/FeatureSet", "esri/units"],
+						function (RouteParameters, FeatureSet, Units) {
+							var routeParams, features;
+
+							features = new FeatureSet();
+							features.features = stopsLayer.graphics;
+							routeParams = new RouteParameters();
+							routeParams.stops = features;
+							routeParams.returnRoutes = true;
+							routeParams.returnDirections = false;
+							routeParams.directionsLengthUnits = Units.MILES;
+							routeParams.outSpatialReference = map.spatialReference;
+
+							routeTask.solve(routeParams, function (solveResults) {
+								window.console.log(solveResults);
+							}, routeParams, function (error) {
+								window.console.error(error);
+							});
+						});
 				}
 			});
 		});
