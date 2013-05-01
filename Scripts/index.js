@@ -9,7 +9,11 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 		"use strict";
 		var map, locator, routeTask, stopsLayer, protocol = window.location.protocol;
 
-		function addressCandidateToSingleLine(/*esri.tasks.AddressCandidate*/ addressCandidate) {
+		/**Converts an AddressCandidate into a string with the entire address on a single line.
+		* (e.g., "742 Evergreen Terrace, Springfield, NT  58008")
+		* @returns {string} An address on a single line.
+		*/
+		function /*string*/ addressCandidateToSingleLine(/*esri.tasks.AddressCandidate*/ addressCandidate) {
 			var output = [], address;
 			if (addressCandidate && addressCandidate.address) {
 				address = addressCandidate.address;
@@ -52,13 +56,10 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 
 			on(map, "click", function (evt) {
 				if (evt.mapPoint) {
-					// console.log(evt.mapPoint);
 					locator.locationToAddress(evt.mapPoint, 100, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
-						// window.console.log(addressCandidate);
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
 						graphic.setAttributes({
-							// addressCandidate: addressCandidate
 							Name: addressCandidateToSingleLine(addressCandidate)
 						});
 						stopsLayer.add(graphic);
