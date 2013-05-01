@@ -5,13 +5,8 @@
   url, etc.
 */
 using System;
-using System.Drawing;
 using System.IO;
 using System.Web;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
-using System.Web.Caching;
 
 namespace Proxy
 {
