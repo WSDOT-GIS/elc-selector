@@ -2,12 +2,12 @@
 /*jslint browser:true, white:true*/
 require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
-	"esri/symbols/SimpleMarkerSymbol", "esri/graphic", "esri/InfoTemplate",
+	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Attribution"],
-	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, Graphic,
+	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, Graphic,
 		InfoTemplate) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, protocol;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
 
 		// Store the protocol (e.g., "https:")
 		protocol = window.location.protocol;
@@ -48,11 +48,21 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			map.disableDoubleClickZoom();
 
 			// Create the graphics layer that will be used to show the stop graphics.
-			stopsLayer = new GraphicsLayer();
+			stopsLayer = new GraphicsLayer({
+				id: "stops"
+			});
 			stopsLayer.setInfoTemplate(new InfoTemplate("Address", "${Name}"));
 			symbol = new SimpleMarkerSymbol();
 			stopsLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(stopsLayer);
+
+			// Create the routes graphics layer.
+			routesLayer = new GraphicsLayer({
+				id: "routes"
+			});
+			symbol = new SimpleLineSymbol();
+			routesLayer.setRenderer(new SimpleRenderer(symbol));
+			map.addLayer(routesLayer);
 
 			// Setup the locator.
 			locator = new Locator(protocol + "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer");
@@ -64,7 +74,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			// Setup the map click event that will call the geocoder service.
 			on(map, "click", function (evt) {
 				if (evt.mapPoint) {
-					locator.locationToAddress(evt.mapPoint, 100, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
+					locator.locationToAddress(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
 						graphic.setAttributes({
@@ -94,6 +104,24 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 							routeParams.outSpatialReference = map.spatialReference;
 
 							routeTask.solve(routeParams, function (solveResults) {
+								/* 
+								@param {Array} solveResults.barriers
+								@param {Array} solveResults.messages
+								@param {Array} solveResults.polygonBarriers
+								@param {Array} solveResults.polylineBarriers
+								@param {esri.tasks.RouteResult[]} solveResults.routeResults
+
+								{Graphic} routeResult.route
+								{string} routeResult.routeName
+								*/
+								var i, l;
+								if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
+									for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
+										routesLayer.add(solveResults.routeResults[i].route);
+									}
+								}
+								
+								
 								window.console.log(solveResults);
 							}, routeParams, function (error) {
 								window.console.error(error);
