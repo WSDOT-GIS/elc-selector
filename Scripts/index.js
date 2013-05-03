@@ -1,11 +1,11 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
-require(["require", "dojo/on", "dojo/_base/Color","esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
+require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer",
 	"esri/dijit/Attribution"],
-	function (require, on, Color, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
 		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
@@ -35,7 +35,6 @@ require(["require", "dojo/on", "dojo/_base/Color","esri/urlUtils", "esri/map", "
 
 		// Create the map.
 		map = new Map("map", {
-			//basemap: "streets",
 			basemap: new Basemap({
 				id: "Hybrid",
 				layers: [
@@ -52,6 +51,20 @@ require(["require", "dojo/on", "dojo/_base/Color","esri/urlUtils", "esri/map", "
 		// Create the event handler for when the map finishes loading...
 		on(map, "load", function () {
 			var symbol;
+
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(function (position) {
+					require(["esri/geometry/Point"], function (Point) {
+						var x, y;
+						x = position.coords.longitude;
+						y = position.coords.latitude;
+						map.centerAndZoom(new Point(x, y), 15);
+					});
+				}, function (error) {
+					window.console.error(error);
+				});
+			}
+			
 
 			// Disable zooming on map double-click.  Double click will be used to create a route.
 			map.disableDoubleClickZoom();
@@ -70,6 +83,7 @@ require(["require", "dojo/on", "dojo/_base/Color","esri/urlUtils", "esri/map", "
 			routesLayer = new GraphicsLayer({
 				id: "routes"
 			});
+			routesLayer.setInfoTemplate(new InfoTemplate("Route", "${Name}"));
 			symbol = new SimpleLineSymbol();
 			symbol.setColor("00ccff");
 			routesLayer.setRenderer(new SimpleRenderer(symbol));
