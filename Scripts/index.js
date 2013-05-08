@@ -3,12 +3,12 @@
 require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
-	"esri/dijit/Basemap", "esri/dijit/BasemapLayer",
+	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
 	"esri/dijit/Attribution"],
 	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer) {
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol, trafficLayer;
 
 		// Store the protocol (e.g., "https:")
 		protocol = window.location.protocol;
@@ -31,6 +31,10 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 		urlUtils.addProxyRule({
 			proxyUrl: "proxy.ashx",
 			urlPrefix: protocol + "//route.arcgis.com"
+		});
+		urlUtils.addProxyRule({
+			proxyUrl: "proxy.ashx",
+			urlPrefix: protocol + "//traffic.arcgis.com"
 		});
 
 		// Create the map.
@@ -64,6 +68,11 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 					window.console.error(error);
 				});
 			}
+
+			trafficLayer = new ArcGISDynamicMapServiceLayer(protocol + "//traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer", {
+				id: "traffic"
+			});
+			map.addLayer(trafficLayer);
 			
 
 			// Disable zooming on map double-click.  Double click will be used to create a route.
@@ -146,7 +155,7 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 									}
 								}
 								
-								
+								stopsLayer.clear();
 								window.console.log(solveResults);
 							}, routeParams, function (error) {
 								window.console.error(error);
