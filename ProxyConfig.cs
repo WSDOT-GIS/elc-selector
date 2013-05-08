@@ -117,7 +117,9 @@ namespace Proxy
 		/// </exception>
 		public string GetToken(string uri)
 		{
-			Trace.TraceInformation("Entering GetToken(\"{0}\") method...", uri);
+#if DEBUG
+			Trace.TraceInformation("Entering GetToken(\"{0}\") method...", uri); 
+#endif
 			string agolUser, agolPW;
 			agolUser = ConfigurationManager.AppSettings["agolUser"];
 			agolPW = ConfigurationManager.AppSettings["agolPassword"];
@@ -130,7 +132,9 @@ namespace Proxy
 			{
 				if (su.MatchAll && uri.StartsWith(su.Url, StringComparison.InvariantCultureIgnoreCase))
 				{
-					Trace.TraceInformation("URI partial match found: {0} matches {1}.", su.Url, uri);
+#if DEBUG
+					Trace.TraceInformation("URI partial match found: {0} matches {1}.", su.Url, uri); 
+#endif
 					token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, su) : su.Token;
 					break;
 				}
@@ -138,7 +142,9 @@ namespace Proxy
 				{
 					if (String.Compare(uri, su.Url, StringComparison.InvariantCultureIgnoreCase) == 0)
 					{
-						Trace.TraceInformation("URI match found: {0} matches {1}.", su.Url, uri);
+#if DEBUG
+						Trace.TraceInformation("URI match found: {0} matches {1}.", su.Url, uri); 
+#endif
 						token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, su) : su.Token;
 						break;
 					}
@@ -148,7 +154,9 @@ namespace Proxy
 			if (string.IsNullOrEmpty(token) && mustMatch)
 			{
 				const string msg = "The \"mustMatch\" option is specified in proxy.config, but no matching URLs were found.";
-				Trace.TraceError(msg);
+#if DEBUG
+				Trace.TraceError(msg); 
+#endif
 				throw new InvalidOperationException(msg);
 			}
 
@@ -163,7 +171,9 @@ namespace Proxy
 			if (su.Token == null || su.TokenHasExpired)
 			{
 				var url = CreateTokenRequestUrl(agolUser, agolPW);
-				Trace.TraceInformation("Requesting token from \"{0}\"...", url);
+#if DEBUG
+				Trace.TraceInformation("Requesting token from \"{0}\"...", url); 
+#endif
 
 				// Get a new token.
 				var request = WebRequest.Create(url);
@@ -178,7 +188,9 @@ namespace Proxy
 						}
 					}
 				}
-				Trace.TraceInformation("Response from token request: {0}", json);
+#if DEBUG
+				Trace.TraceInformation("Response from token request: {0}", json); 
+#endif
 				var serializer = new SS.JsonSerializer<Token>();
 				Token token;
 				try
@@ -187,7 +199,9 @@ namespace Proxy
 				}
 				catch (SerializationException ex)
 				{
-					Trace.TraceError("{0}", ex);
+#if DEBUG
+					Trace.TraceError("{0}", ex); 
+#endif
 					throw;
 				}
 
