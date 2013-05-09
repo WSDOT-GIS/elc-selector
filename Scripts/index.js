@@ -1,12 +1,13 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
-require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
+require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
 	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
+	"dojo/_base/connect",
 	"esri/dijit/Attribution"],
-	function (require, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer) {
+	function (require, dom, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer, connect) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol, trafficLayer;
 
@@ -52,6 +53,14 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 			showAttribution: true
 		});
 
+		connect.connect(map, "onUpdateStart", function () {
+			dom.byId("mapProgress").hidden = false;
+		});
+
+		connect.connect(map, "onUpdateEnd", function () {
+			dom.byId("mapProgress").hidden = true;
+		});
+
 		// Create the event handler for when the map finishes loading...
 		on(map, "load", function () {
 			var symbol;
@@ -69,10 +78,24 @@ require(["require", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/Graphic
 				});
 			}
 
-			trafficLayer = new ArcGISDynamicMapServiceLayer(protocol + "//traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer", {
-				id: "traffic"
+
+			on(dom.byId("trafficCheckbox"), "click", function (e) {
+				if (this.checked) {
+					if (!trafficLayer) {
+						trafficLayer = new ArcGISDynamicMapServiceLayer(protocol + "//traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer", {
+							id: "traffic"
+						});
+						map.addLayer(trafficLayer);
+					}
+					trafficLayer.show();
+				} else {
+					if (trafficLayer) {
+						trafficLayer.hide();
+					}
+				}
 			});
-			map.addLayer(trafficLayer);
+
+
 			
 
 			// Disable zooming on map double-click.  Double click will be used to create a route.

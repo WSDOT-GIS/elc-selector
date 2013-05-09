@@ -9,10 +9,43 @@ html, body, #map, .map.container {
 	margin:0;
 	height:100%;
 }
+ul, li {
+	padding: 0;
+	margin: 0;
+}
+#layers {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 1;
+	background-color: white;
+
+	margin-top: 1em;
+	margin-right: 1em;
+	padding: 0.3em;
+}
+#layers ul {
+	list-style-type: none;
+	list-style-position: inside;
+	padding: 0;
+}
+progress {
+	position: absolute;
+	bottom: 50%;
+	left: 50%;
+	z-index: 1;
+}
 	</style>
 </head>
 <body>
-	<div id="map"></div>
+	<div id="map">
+		<div id="layers">
+			<ul>
+				<li><input type="checkbox" id="trafficCheckbox" /><label for="trafficCheckbox">Traffic</label></li>
+			</ul>
+		</div>
+		<progress id="mapProgress">Updating map...</progress>
+	</div>
 	<script data-dojo-config="{async: true}"></script>
 	<script src="//serverapi.arcgisonline.com/jsapi/arcgis/?v=3.4amd"></script>
 	<script src="Scripts/index.js"></script>
