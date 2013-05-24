@@ -15,7 +15,8 @@ namespace ArcGisSecureServicesTest
 	/// <para>location: A point defined by two <see cref="double"/> values separated by a string.</para>
 	/// </summary>
 	/// <remarks>
-	/// The reason you would use this handler instead of just using the ArcGIS REST API reverse geocode method is that the REST version does not
+	/// The reason you would use this handler instead of just using the ArcGIS 
+	/// REST API reverse geocode method is that the REST version does not
 	/// provide the ability to return intersections.
 	/// </remarks>
 	public class ReverseGeocodeIntersection : IHttpHandler

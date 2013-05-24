@@ -1,7 +1,7 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
 require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
-	"esri/tasks/Locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
+	"esri/tasks/locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
 	"dojo/_base/connect",
