@@ -71,6 +71,7 @@
     <Content Include="index.html" />
     <Content Include="Scripts\index.js" />
     <Content Include="Scripts\wsdot\tasks\intersectionLocator.js" />
+    <Content Include="Style\index.css" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
