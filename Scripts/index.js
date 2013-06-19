@@ -5,9 +5,11 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
 	"dojo/_base/connect",
+	"wsdot/tasks/intersectionLocator",
 	"esri/dijit/Attribution"],
 	function (require, dom, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer, connect) {
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer, connect,
+		IntersectionLocator) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol, trafficLayer;
 
@@ -122,8 +124,9 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			map.addLayer(routesLayer);
 
 			// Setup the locator.
-			locator = new Locator(protocol + "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer");
+			locator = new IntersectionLocator(protocol + "ReverseGeocodeIntersection.ashx");
 			locator.setOutSpatialReference(map.spatialReference);
+			
 
 			// Setup the route task.
 			routeTask = new RouteTask(protocol + "//route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
@@ -131,7 +134,7 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			// Setup the map click event that will call the geocoder service.
 			on(map, "click", function (evt) {
 				if (evt.mapPoint) {
-					locator.locationToAddress(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
+					locator.locationToIntersection(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
 						graphic.setAttributes({
