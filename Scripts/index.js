@@ -45,9 +45,9 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			basemap: new Basemap({
 				id: "Hybrid",
 				layers: [
-					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" }),
-					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer" }),
-					new BasemapLayer({ url: "http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer" })
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" }),
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer" }),
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer" })
 				]
 			}),
 			center: [-120.80566406246835, 47.41322033015946],
@@ -120,6 +120,7 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			routesLayer.setInfoTemplate(new InfoTemplate("Route", "${Name}"));
 			symbol = new SimpleLineSymbol();
 			symbol.setColor("00ccff");
+			symbol.setWidth(10);
 			routesLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(routesLayer);
 
