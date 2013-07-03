@@ -1,13 +1,13 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
 require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
-	"esri/tasks/locator", "esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
+	"esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
 	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
 	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
 	"dojo/_base/connect",
 	"wsdot/tasks/intersectionLocator",
 	"esri/dijit/Attribution"],
-	function (require, dom, on, urlUtils, Map, GraphicsLayer, Locator, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+	function (require, dom, on, urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
 		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer, connect,
 		IntersectionLocator) {
 		"use strict";
@@ -64,7 +64,7 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 		});
 
 		// Create the event handler for when the map finishes loading...
-		on(map, "load", function () {
+		map.on("load", function () {
 			var symbol;
 
 			if (navigator.geolocation) {
@@ -133,7 +133,7 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			routeTask = new RouteTask(protocol + "//route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
 
 			// Setup the map click event that will call the geocoder service.
-			on(map, "click", function (evt) {
+			map.on("click", function (evt) {
 				if (evt.mapPoint) {
 					locator.locationToIntersection(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
 						var graphic = new Graphic();
@@ -149,7 +149,7 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			});
 
 			// Setup the map double-click event to call the route service when two or more geocoded points are displayed on the map.
-			on(map, "DblClick", function (event) {
+			map.on("dbl-click", function (event) {
 				if (event.mapPoint && stopsLayer.graphics.length >= 2) {
 					require(["esri/tasks/RouteParameters", "esri/tasks/FeatureSet", "esri/units"],
 						function (RouteParameters, FeatureSet, Units) {
