@@ -1,14 +1,28 @@
 ﻿/*global require*/
 /*jslint browser:true, white:true*/
-require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/layers/GraphicsLayer",
-	"esri/tasks/RouteTask", "esri/renderers/SimpleRenderer",
-	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/graphic", "esri/InfoTemplate",
-	"esri/dijit/Basemap", "esri/dijit/BasemapLayer", "esri/layers/ArcGISDynamicMapServiceLayer",
+require(["dojo/on",
+	"esri/urlUtils",
+	"esri/map",
+	"esri/geometry/Point",
+	"esri/layers/GraphicsLayer",
+	"esri/tasks/RouteTask",
+	"esri/renderers/SimpleRenderer",
+	"esri/symbols/SimpleMarkerSymbol",
+	"esri/symbols/SimpleLineSymbol",
+	"esri/graphic",
+	"esri/InfoTemplate",
+	"esri/dijit/Basemap",
+	"esri/dijit/BasemapLayer",
+	"esri/layers/ArcGISDynamicMapServiceLayer",
+	"esri/tasks/RouteParameters",
+	"esri/tasks/FeatureSet",
+	"esri/units",
 	"dojo/_base/connect",
 	"wsdot/tasks/intersectionLocator",
 	"esri/dijit/Attribution"],
-	function (require, dom, on, urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer, connect,
+	function (on, urlUtils, Map, Point, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer,
+		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator) {
 		"use strict";
 		var map, locator, routeTask, stopsLayer, routesLayer, protocol, trafficLayer;
@@ -56,11 +70,11 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 		});
 
 		connect.connect(map, "onUpdateStart", function () {
-			dom.byId("mapProgress").hidden = false;
+			document.getElementById("mapProgress").hidden = false;
 		});
 
 		connect.connect(map, "onUpdateEnd", function () {
-			dom.byId("mapProgress").hidden = true;
+			document.getElementById("mapProgress").hidden = true;
 		});
 
 		// Create the event handler for when the map finishes loading...
@@ -69,19 +83,16 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(function (position) {
-					require(["esri/geometry/Point"], function (Point) {
-						var x, y;
-						x = position.coords.longitude;
-						y = position.coords.latitude;
-						map.centerAndZoom(new Point(x, y), 15);
-					});
+					var x, y;
+					x = position.coords.longitude;
+					y = position.coords.latitude;
+					map.centerAndZoom(new Point(x, y), 15);
 				}, function (error) {
 					window.console.error(error);
 				});
 			}
 
-
-			on(dom.byId("trafficCheckbox"), "click", function (e) {
+			on(document.getElementById("trafficCheckbox"), "click", function (e) {
 				if (this.checked) {
 					if (!trafficLayer) {
 						trafficLayer = new ArcGISDynamicMapServiceLayer(protocol + "//traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer", {
@@ -151,43 +162,40 @@ require(["require", "dojo/dom", "dojo/on", "esri/urlUtils", "esri/map", "esri/la
 			// Setup the map double-click event to call the route service when two or more geocoded points are displayed on the map.
 			map.on("dbl-click", function (event) {
 				if (event.mapPoint && stopsLayer.graphics.length >= 2) {
-					require(["esri/tasks/RouteParameters", "esri/tasks/FeatureSet", "esri/units"],
-						function (RouteParameters, FeatureSet, Units) {
-							var routeParams, features;
+					var routeParams, features;
 
-							features = new FeatureSet();
-							features.features = stopsLayer.graphics;
-							routeParams = new RouteParameters();
-							routeParams.stops = features;
-							routeParams.returnRoutes = true;
-							routeParams.returnDirections = false;
-							routeParams.directionsLengthUnits = Units.MILES;
-							routeParams.outSpatialReference = map.spatialReference;
+					features = new FeatureSet();
+					features.features = stopsLayer.graphics;
+					routeParams = new RouteParameters();
+					routeParams.stops = features;
+					routeParams.returnRoutes = true;
+					routeParams.returnDirections = false;
+					routeParams.directionsLengthUnits = Units.MILES;
+					routeParams.outSpatialReference = map.spatialReference;
 
-							routeTask.solve(routeParams, function (solveResults) {
-								/* 
-								@param {Array} solveResults.barriers
-								@param {Array} solveResults.messages
-								@param {Array} solveResults.polygonBarriers
-								@param {Array} solveResults.polylineBarriers
-								@param {esri.tasks.RouteResult[]} solveResults.routeResults
+					routeTask.solve(routeParams, function (solveResults) {
+						/* 
+						@param {Array} solveResults.barriers
+						@param {Array} solveResults.messages
+						@param {Array} solveResults.polygonBarriers
+						@param {Array} solveResults.polylineBarriers
+						@param {esri.tasks.RouteResult[]} solveResults.routeResults
 
-								{Graphic} routeResult.route
-								{string} routeResult.routeName
-								*/
-								var i, l;
-								if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
-									for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
-										routesLayer.add(solveResults.routeResults[i].route);
-									}
-								}
-								
-								stopsLayer.clear();
-								window.console.log(solveResults);
-							}, routeParams, function (error) {
-								window.console.error(error);
-							});
-						});
+						{Graphic} routeResult.route
+						{string} routeResult.routeName
+						*/
+						var i, l;
+						if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
+							for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
+								routesLayer.add(solveResults.routeResults[i].route);
+							}
+						}
+
+						stopsLayer.clear();
+						window.console.log(solveResults);
+					}, routeParams, function (error) {
+						window.console.error(error);
+					});
 				}
 			});
 		});
