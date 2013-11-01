@@ -29,3 +29,5 @@ $tf*/
 packages
 Web.Config
 Web.*.Config
+NuGet.exe
+NuGet.targets
