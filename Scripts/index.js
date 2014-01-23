@@ -25,7 +25,7 @@ require(["dojo/on",
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, routesLayer, protocol, trafficLayer;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
 
 		// Store the protocol (e.g., "https:")
 		protocol = window.location.protocol;
@@ -48,10 +48,6 @@ require(["dojo/on",
 		urlUtils.addProxyRule({
 			proxyUrl: "proxy.ashx",
 			urlPrefix: protocol + "//route.arcgis.com"
-		});
-		urlUtils.addProxyRule({
-			proxyUrl: "proxy.ashx",
-			urlPrefix: protocol + "//traffic.arcgis.com"
 		});
 
 		// Create the map.
@@ -91,25 +87,6 @@ require(["dojo/on",
 					window.console.error(error);
 				});
 			}
-
-			on(document.getElementById("trafficCheckbox"), "click", function (e) {
-				if (this.checked) {
-					if (!trafficLayer) {
-						trafficLayer = new ArcGISDynamicMapServiceLayer(protocol + "//traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer", {
-							id: "traffic"
-						});
-						map.addLayer(trafficLayer);
-					}
-					trafficLayer.show();
-				} else {
-					if (trafficLayer) {
-						trafficLayer.hide();
-					}
-				}
-			});
-
-
-			
 
 			// Disable zooming on map double-click.  Double click will be used to create a route.
 			map.disableDoubleClickZoom();
