@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Caching;
 using System.Xml.Serialization;
-using SS = ServiceStack.Text;
+using Newtonsoft.Json;
 
 namespace Proxy
 {
@@ -191,11 +191,10 @@ namespace Proxy
 #if DEBUG
 				Trace.TraceInformation("Response from token request: {0}", json); 
 #endif
-				var serializer = new SS.JsonSerializer<Token>();
 				Token token;
 				try
 				{
-					token = serializer.DeserializeFromString(json);
+					token = JsonConvert.DeserializeObject<Token>(json, new IntToDateConverter());
 				}
 				catch (SerializationException ex)
 				{
