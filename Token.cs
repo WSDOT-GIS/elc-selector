@@ -16,6 +16,7 @@ namespace Proxy
 		/// <summary>
 		/// The expiration date / time of the token.
 		/// </summary>
+		[JsonProperty(PropertyName="expires")]
 		public DateTime expires { get; set; }
 
 		/// <summary>
@@ -25,11 +26,38 @@ namespace Proxy
 		public bool ssl { get; set; }
 	}
 
+	/// <summary>
+	/// Represents an OAuth token.
+	/// </summary>
 	public class OAuthToken
 	{
+		protected int _secondsUntilExpiration;
+
 		[JsonProperty(PropertyName="access_token")]
-		public string access_token { get; set; }
+		public string AccessToken { get; set; }
+
+		/// <summary>
+		/// Number of seconds from token creation time until the token expires.
+		/// </summary>
 		[JsonProperty("expires_in")]
-		public int expires_in { get; set; }
+		public int SecondsUntilExpiration
+		{
+			get
+			{
+				return _secondsUntilExpiration;
+			}
+			set
+			{
+				CreationTime = DateTime.Now;
+				_secondsUntilExpiration = value;
+				Expires = CreationTime.AddSeconds(_secondsUntilExpiration);
+			}
+		}
+
+		[JsonIgnore]
+		public DateTime Expires { get; protected set; }
+
+		[JsonIgnore]
+		public DateTime CreationTime { get; protected set; }
 	}
 }

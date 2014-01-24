@@ -101,9 +101,9 @@ namespace Proxy
 		/// <param name="password">password</param>
 		/// <param name="expires">Number of minutes until the token will expire</param>
 		/// <returns>Returns a <see cref="Uri"/>.</returns>
-		private static Uri CreateTokenRequestUrl(string userName, string password, string clientId, string clientSecret, int? expires=default(int?))
+		private static Uri CreateTokenRequestUrl(string userName, string password, string clientId, string clientSecret, out TokenRequestType requestType, int? expires=default(int?))
 		{
-			TokenRequestType requestType = GetTokenRequestType(userName, password, clientId, clientSecret);
+			requestType = GetTokenRequestType(userName, password, clientId, clientSecret);
 
 			if (requestType == TokenRequestType.None)
 			{
@@ -200,9 +200,11 @@ namespace Proxy
 			// current token is expired.
 			if (su.Token == null || su.TokenHasExpired)
 			{
-				var url = CreateTokenRequestUrl(agolUser, agolPW, agolClientId, agolClientSecret);
+				TokenRequestType tokenRequestType;
+
+				var url = CreateTokenRequestUrl(agolUser, agolPW, agolClientId, agolClientSecret, out tokenRequestType);
 #if DEBUG
-				Trace.TraceInformation("Requesting token from \"{0}\"...", url); 
+				Trace.TraceInformation("Requesting token from \"{0}\"...", url);
 #endif
 
 				// Get a new token.
@@ -219,24 +221,35 @@ namespace Proxy
 					}
 				}
 #if DEBUG
-				Trace.TraceInformation("Response from token request: {0}", json); 
+				Trace.TraceInformation("Response from token request: {0}", json);
 #endif
-				Token token;
 				try
 				{
-					token = JsonConvert.DeserializeObject<Token>(json, new IntToDateConverter());
+					if (tokenRequestType == TokenRequestType.OAuth)
+					{
+						OAuthToken token;
+						token = JsonConvert.DeserializeObject<OAuthToken>(json, new IntToDateConverter());
+						// Set the server URL properties corresponding to the token.
+						su.Token = token.AccessToken;
+						su.TokenExpires = token.Expires;
+					}
+					else
+					{
+						Token token;
+						token = JsonConvert.DeserializeObject<Token>(json, new IntToDateConverter());
+						// Set the server URL properties corresponding to the token.
+						su.Token = token.token;
+						su.TokenExpires = token.expires;
+					}
 				}
-				catch (SerializationException ex)
+				catch (JsonException ex)
 				{
 #if DEBUG
-					Trace.TraceError("{0}", ex); 
+					Trace.TraceError("{0}", ex);
 #endif
+
 					throw;
 				}
-
-				// Set the server URL properties corresponding to the token.
-				su.Token = token.token;
-				su.TokenExpires = token.expires;
 			}
 			return su.Token;
 		}
