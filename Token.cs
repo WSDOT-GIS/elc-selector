@@ -33,6 +33,9 @@ namespace Proxy
 	{
 		protected int _secondsUntilExpiration;
 
+		/// <summary>
+		/// The token string that will be provided to HTTP requests to the ArcGIS REST API for secure services.
+		/// </summary>
 		[JsonProperty(PropertyName="access_token")]
 		public string AccessToken { get; set; }
 
@@ -54,9 +57,15 @@ namespace Proxy
 			}
 		}
 
+		/// <summary>
+		/// The date/time that this token expires
+		/// </summary>
 		[JsonIgnore]
 		public DateTime Expires { get; protected set; }
 
+		/// <summary>
+		/// The date/time that the token was created.
+		/// </summary>
 		[JsonIgnore]
 		public DateTime CreationTime { get; protected set; }
 	}
