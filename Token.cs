@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace Proxy
 {
@@ -22,5 +23,13 @@ namespace Proxy
 		/// If false then non-SSL requests are allowed.
 		/// </summary>
 		public bool ssl { get; set; }
+	}
+
+	public class OAuthToken
+	{
+		[JsonProperty(PropertyName="access_token")]
+		public string access_token { get; set; }
+		[JsonProperty("expires_in")]
+		public int expires_in { get; set; }
 	}
 }

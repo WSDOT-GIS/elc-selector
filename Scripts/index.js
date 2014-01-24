@@ -149,6 +149,7 @@ require(["dojo/on",
 					routeParams.returnDirections = false;
 					routeParams.directionsLengthUnits = Units.MILES;
 					routeParams.outSpatialReference = map.spatialReference;
+					routeParams.restrictionAttributes = ["none"];
 
 					routeTask.solve(routeParams, function (solveResults) {
 						/* 

@@ -12,6 +12,12 @@ using Newtonsoft.Json;
 
 namespace Proxy
 {
+	enum TokenRequestType
+	{
+		None = 0,
+		User,
+		OAuth
+	}
 
 	[XmlRoot("ProxyConfig")]
 	public class ProxyConfig
@@ -81,6 +87,13 @@ namespace Proxy
 			set { mustMatch = value; }
 		}
 
+		private static TokenRequestType GetTokenRequestType(string userName, string password, string clientId, string clientSecret)
+		{
+			return !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password) ? TokenRequestType.User
+				: !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret) ? TokenRequestType.OAuth
+				: TokenRequestType.None;
+		}
+
 		/// <summary>
 		/// Creates the token request URL.
 		/// </summary>
@@ -88,18 +101,33 @@ namespace Proxy
 		/// <param name="password">password</param>
 		/// <param name="expires">Number of minutes until the token will expire</param>
 		/// <returns>Returns a <see cref="Uri"/>.</returns>
-		private static Uri CreateTokenRequestUrl(string userName, string password, int? expires=default(int?))
+		private static Uri CreateTokenRequestUrl(string userName, string password, string clientId, string clientSecret, int? expires=default(int?))
 		{
-			
-			if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+			TokenRequestType requestType = GetTokenRequestType(userName, password, clientId, clientSecret);
+
+			if (requestType == TokenRequestType.None)
 			{
 				throw new ArgumentNullException("None of the following parameters should be null: userName, password.", default(Exception));
 			}
+
 			// Get the requesting URL. The query string portion will be removed.
 			string referrer = Regex.Match(HttpContext.Current.Request.Url.ToString(), @"[^\?]+").Value;
-			const string _tokenUrl = "https://www.arcgis.com/sharing/generateToken?username={0}&password={1}&referer={2}&expiration={3}&f=json";
 
-			string url = string.Format(_tokenUrl, userName, password, referrer, expires.HasValue ? expires.ToString() : string.Empty);
+			string url;
+
+			if (requestType == TokenRequestType.User)
+			{
+				const string _tokenUrl = "https://www.arcgis.com/sharing/generateToken?username={0}&password={1}&referer={2}&expiration={3}&f=json";
+				url = string.Format(_tokenUrl, userName, password, referrer, expires.HasValue ? expires.ToString() : string.Empty);
+
+			}
+			else
+			{
+				const string _tokenUrl = "https://www.arcgis.com/sharing/oauth2/token?client_id={0}&grant_type=client_credentials&client_secret={1}&f=json";
+				url = string.Format(_tokenUrl, clientId, clientSecret, referrer, expires.HasValue ? expires.ToString() : string.Empty);
+			}
+
+
 
 			return new Uri(url);
 		}
@@ -120,9 +148,11 @@ namespace Proxy
 #if DEBUG
 			Trace.TraceInformation("Entering GetToken(\"{0}\") method...", uri); 
 #endif
-			string agolUser, agolPW;
+			string agolUser, agolPW, agolClientId, agolClientSecret;
 			agolUser = ConfigurationManager.AppSettings["agolUser"];
 			agolPW = ConfigurationManager.AppSettings["agolPassword"];
+			agolClientId = ConfigurationManager.AppSettings["agolClientId"];
+			agolClientSecret = ConfigurationManager.AppSettings["agolClientSecret"];
 
 			Trace.TraceInformation("{0}:{1}", agolUser, agolPW);
 
@@ -135,7 +165,7 @@ namespace Proxy
 #if DEBUG
 					Trace.TraceInformation("URI partial match found: {0} matches {1}.", su.Url, uri); 
 #endif
-					token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, su) : su.Token;
+					token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, agolClientId, agolClientSecret, su) : su.Token;
 					break;
 				}
 				else
@@ -145,7 +175,7 @@ namespace Proxy
 #if DEBUG
 						Trace.TraceInformation("URI match found: {0} matches {1}.", su.Url, uri); 
 #endif
-						token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, su) : su.Token;
+						token = su.DynamicToken ? GetTokenForUrl(agolUser, agolPW, agolClientId, agolClientSecret, su) : su.Token;
 						break;
 					}
 				}
@@ -163,14 +193,14 @@ namespace Proxy
 			return token;
 		}
 
-		private static string GetTokenForUrl(string agolUser, string agolPW, ServerUrl su)
+		private static string GetTokenForUrl(string agolUser, string agolPW, string agolClientId, string agolClientSecret, ServerUrl su)
 		{
 			// If the URL has the dynamic token attribute set to true,
 			// create a new token if there is no current token or if the 
 			// current token is expired.
 			if (su.Token == null || su.TokenHasExpired)
 			{
-				var url = CreateTokenRequestUrl(agolUser, agolPW);
+				var url = CreateTokenRequestUrl(agolUser, agolPW, agolClientId, agolClientSecret);
 #if DEBUG
 				Trace.TraceInformation("Requesting token from \"{0}\"...", url); 
 #endif
