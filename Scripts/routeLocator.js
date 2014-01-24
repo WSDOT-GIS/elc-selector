@@ -49,6 +49,29 @@ require(["dojo/on",
 			deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
 		}
 
+		/** @callback {LayerGraphicEvent}
+		 * @property {Graphic} graphic
+		 * @property {GraphicsLayer} target
+		 */
+
+		function postGraphicAddMessage(e) {
+			var message = {
+				layerId: e.target.id,
+				action: "added",
+				graphic: e.graphic.toJson()
+			};
+			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
+		}
+
+		function postGraphicRemoveMessage(e) {
+			var message = {
+				layerId: e.target.id,
+				action: "removed",
+				graphic: e.graphic.toJson()
+			};
+			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
+		}
+
 		/** Removes the last graphic from a layer list.
 		 * @returns {Graphic} Returns the graphic that was removed.
 		 */
@@ -118,17 +141,6 @@ require(["dojo/on",
 		map.on("load", function () {
 			var symbol;
 
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(function (position) {
-					var x, y;
-					x = position.coords.longitude;
-					y = position.coords.latitude;
-					map.centerAndZoom(new Point(x, y), 15);
-				}, function (error) {
-					window.console.error(error);
-				});
-			}
-
 			// Disable zooming on map double-click.  Double click will be used to create a route.
 			map.disableDoubleClickZoom();
 
@@ -157,6 +169,9 @@ require(["dojo/on",
 			[stopsLayer, routesLayer].forEach(function (layer) {
 				layer.on("graphic-add", setDisabledStatusOfButtons);
 				layer.on("graphic-remove", setDisabledStatusOfButtons);
+
+				layer.on("graphic-add", postGraphicAddMessage);
+				layer.on("graphic-remove", postGraphicRemoveMessage);
 			});
 
 			// Setup the locator.

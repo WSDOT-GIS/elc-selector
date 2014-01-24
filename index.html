@@ -14,12 +14,9 @@
 	<iframe id="defaultFunctionality" src="routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
 	<h2>Restricted to a single route</h2>
 	<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
-	<script defer>
-		document.getElementById("defaultFunctionality").addEventListener("message", function () {
-			console.log({
-				"this": this,
-				"arguments": arguments
-			});
+	<script>
+		window.addEventListener("message", function (/** {MessageEvent} */ e) {
+			console.log(e.data);
 		});
 	</script>
 </body>
