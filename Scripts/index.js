@@ -44,6 +44,51 @@ require(["dojo/on",
 			return output.join("");
 		}
 
+		function setDisabledStatusOfButtons() {
+			var deleteButton = document.getElementById("deleteButton"), clearButton = document.getElementById("clearButton");
+			deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
+		}
+
+		function handleOnGraphicAdd() {
+			setDisabledStatusOfButtons();
+		}
+
+		/** Removes the last graphic from a layer list.
+		 * @returns {Graphic} Returns the graphic that was removed.
+		 */
+		function removeLastGraphic(/**{GraphicsLayer}*/ layer) {
+			var graphic = null;
+			if (layer.graphics.length > 0) {
+				graphic = layer.graphics[layer.graphics.length - 1];
+				layer.remove(graphic);
+			}
+			return graphic;
+		}
+
+		/** Event handler for delete button.
+		 * If the clicked button is the "clearButton", all graphics from a layer will be cleared.
+		 */
+		function deleteStopOrRoute(/** {MouseEvent} */ e) {
+			var buttonId = e.target.id;
+			if (stopsLayer.graphics.length > 0) {
+				if (buttonId === "clearButton") {
+					stopsLayer.clear();
+				} else {
+					removeLastGraphic(stopsLayer);
+				}
+			} else if (routesLayer.graphics.length > 0) {
+				if (buttonId === "clearButton") {
+					routesLayer.clear();
+				} else {
+					removeLastGraphic(routesLayer);
+				}
+			}
+		}
+
+		document.getElementById("deleteButton").addEventListener("click", deleteStopOrRoute);
+		document.getElementById("clearButton").addEventListener("click", deleteStopOrRoute);
+		
+
 		// Set the routing URL to use a proxy.  The proxy will handle getting tokens.
 		urlUtils.addProxyRule({
 			proxyUrl: "proxy.ashx",
@@ -111,6 +156,12 @@ require(["dojo/on",
 			symbol.setWidth(10);
 			routesLayer.setRenderer(new SimpleRenderer(symbol));
 			map.addLayer(routesLayer);
+
+			// Assign event handlers to layers.
+			[stopsLayer, routesLayer].forEach(function (layer) {
+				layer.on("graphic-add", handleOnGraphicAdd);
+				layer.on("graphic-remove", handleOnGraphicAdd);
+			});
 
 			// Setup the locator.
 			locator = new IntersectionLocator(protocol + "ReverseGeocodeIntersection.ashx");
