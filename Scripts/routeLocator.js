@@ -25,7 +25,14 @@ require(["dojo/on",
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol, routeLimit;
+
+		// Get the route limit
+		routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
+
+		function hasExceededRouteLimit() {
+			return routeLimit !== null && routesLayer.graphics.length >= routeLimit;
+		}
 
 		// Store the protocol (e.g., "https:")
 		protocol = window.location.protocol;
@@ -184,7 +191,7 @@ require(["dojo/on",
 
 			// Setup the map click event that will call the geocoder service.
 			map.on("click", function (evt) {
-				if (evt.mapPoint) {
+				if (evt.mapPoint && !hasExceededRouteLimit()) {
 					locator.locationToIntersection(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
