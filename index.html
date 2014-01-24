@@ -1,30 +1,26 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>Test</title>
-	<link href="//js.arcgis.com/3.8compact/js/esri/css/esri.css" rel="stylesheet" />
-	<link href="Style/index.css" rel="stylesheet" />
+	<title></title>
+	<style>
+		iframe {
+			width: 640px;
+			height: 480px;
+		}
+	</style>
 </head>
 <body>
-	<div id="map">
-		<div id="toolbar">
-			<button id="deleteButton" disabled="disabled">Delete</button>
-			<button id="clearButton" disabled="disabled">Clear</button>
-		</div>
-		<progress id="mapProgress">Updating map...</progress>
-	</div>
-	<script>
-		var dojoConfig = {
-			async: true,
-			packages: [
-				{
-					name: "wsdot",
-					location: "/./Scripts/wsdot"
-				}
-			]
-		};
+	<h2>Unlimited features</h2>
+	<iframe id="defaultFunctionality" src="routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
+	<h2>Restricted to a single route</h2>
+	<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
+	<script defer>
+		document.getElementById("defaultFunctionality").addEventListener("message", function () {
+			console.log({
+				"this": this,
+				"arguments": arguments
+			});
+		});
 	</script>
-	<script src="//js.arcgis.com/3.8compact/"></script>
-	<script src="Scripts/index.js"></script>
 </body>
 </html>

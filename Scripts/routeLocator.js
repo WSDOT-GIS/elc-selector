@@ -49,10 +49,6 @@ require(["dojo/on",
 			deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
 		}
 
-		function handleOnGraphicAdd() {
-			setDisabledStatusOfButtons();
-		}
-
 		/** Removes the last graphic from a layer list.
 		 * @returns {Graphic} Returns the graphic that was removed.
 		 */
@@ -159,8 +155,8 @@ require(["dojo/on",
 
 			// Assign event handlers to layers.
 			[stopsLayer, routesLayer].forEach(function (layer) {
-				layer.on("graphic-add", handleOnGraphicAdd);
-				layer.on("graphic-remove", handleOnGraphicAdd);
+				layer.on("graphic-add", setDisabledStatusOfButtons);
+				layer.on("graphic-remove", setDisabledStatusOfButtons);
 			});
 
 			// Setup the locator.
