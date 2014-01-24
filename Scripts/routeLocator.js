@@ -1,6 +1,6 @@
-﻿/*global require*/
+﻿/*global require, Terraformer*/
 /*jslint browser:true, white:true*/
-require(["dojo/on",
+require([
 	"esri/urlUtils",
 	"esri/map",
 	"esri/geometry/Point",
@@ -19,13 +19,57 @@ require(["dojo/on",
 	"esri/units",
 	"dojo/_base/connect",
 	"wsdot/tasks/intersectionLocator",
-	"esri/dijit/Attribution"],
-	function (on, urlUtils, Map, Point, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+	"proj4js"
+],
+	function (urlUtils, Map, Point, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
 		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer,
 		RouteParameters, FeatureSet, Units, connect,
-		IntersectionLocator) {
+		IntersectionLocator, proj4) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, routesLayer, protocol, routeLimit;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol, routeLimit, waPrj, mapPrj;
+
+		waPrj = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +to_meter=0.3048006096012192 +no_defs";
+		mapPrj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
+
+		/**
+		 * Converts an ArcGIS JS API polyline or polygon in the Web Merc. Aux. Sphere projectetion into WA SPS projected WKT.
+		 * @returns {string}
+		 */
+		function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g) {
+			var path, coords, output = [], outPath, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null;
+			if (pathsPropName) {
+				for (var i = 0, l = g[pathsPropName].length; i < l; i += 1) {
+					path = g[pathsPropName][i];
+					outPath = [];
+					for (var j = 0, jl = path.length; j < jl; j += 1) {
+						coords = path[j];
+						outPath.push(proj4(mapPrj, waPrj, coords));
+					}
+					output.push(outPath);
+				}
+			}
+
+			output = new Terraformer.MultiLineString(output);
+			output = Terraformer.WKT.convert(output);
+
+			return output;
+		}
+
+		/**
+		 * Converts an ArcGIS JS API geometry in the Web Merc. Aux. Sphere projectetion into WA SPS projected WKT.
+		 * @returns {string}
+		 */
+		function getProjectedWkt(/** {Geometry} */ g) {
+			var projected;
+			if (g.x) {
+				projected = proj4(mapPrj, waPrj, [g.x, g.y]);
+				projected = ["POINT (", projected.join(" "), ")"].join("");
+			} else if (g.paths) {
+				projected = getProjectedMultiLinestring(g);
+			}
+
+			return projected;
+		}
 
 		// Get the route limit
 		routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
@@ -67,6 +111,7 @@ require(["dojo/on",
 				action: "added",
 				graphic: e.graphic.toJson()
 			};
+			message.wkt = getProjectedWkt(message.graphic.geometry);
 			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
 		}
 
