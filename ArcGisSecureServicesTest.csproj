@@ -63,11 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="Scripts\index.js" />
+    <Content Include="routeLocator.html" />
+    <Content Include="Scripts\routeLocator.js" />
     <Content Include="Scripts\wsdot\tasks\intersectionLocator.js" />
     <Content Include="packages.config" />
     <None Include="Scripts\_references.js" />
-    <Content Include="Style\index.css" />
+    <Content Include="Style\routeLocator.css" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

@@ -25,7 +25,14 @@ require(["dojo/on",
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator) {
 		"use strict";
-		var map, locator, routeTask, stopsLayer, routesLayer, protocol;
+		var map, locator, routeTask, stopsLayer, routesLayer, protocol, routeLimit;
+
+		// Get the route limit
+		routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
+
+		function hasExceededRouteLimit() {
+			return routeLimit !== null && routesLayer.graphics.length >= routeLimit;
+		}
 
 		// Store the protocol (e.g., "https:")
 		protocol = window.location.protocol;
@@ -49,8 +56,27 @@ require(["dojo/on",
 			deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
 		}
 
-		function handleOnGraphicAdd() {
-			setDisabledStatusOfButtons();
+		/** @callback {LayerGraphicEvent}
+		 * @property {Graphic} graphic
+		 * @property {GraphicsLayer} target
+		 */
+
+		function postGraphicAddMessage(e) {
+			var message = {
+				layerId: e.target.id,
+				action: "added",
+				graphic: e.graphic.toJson()
+			};
+			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
+		}
+
+		function postGraphicRemoveMessage(e) {
+			var message = {
+				layerId: e.target.id,
+				action: "removed",
+				graphic: e.graphic.toJson()
+			};
+			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
 		}
 
 		/** Removes the last graphic from a layer list.
@@ -122,17 +148,6 @@ require(["dojo/on",
 		map.on("load", function () {
 			var symbol;
 
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(function (position) {
-					var x, y;
-					x = position.coords.longitude;
-					y = position.coords.latitude;
-					map.centerAndZoom(new Point(x, y), 15);
-				}, function (error) {
-					window.console.error(error);
-				});
-			}
-
 			// Disable zooming on map double-click.  Double click will be used to create a route.
 			map.disableDoubleClickZoom();
 
@@ -159,8 +174,11 @@ require(["dojo/on",
 
 			// Assign event handlers to layers.
 			[stopsLayer, routesLayer].forEach(function (layer) {
-				layer.on("graphic-add", handleOnGraphicAdd);
-				layer.on("graphic-remove", handleOnGraphicAdd);
+				layer.on("graphic-add", setDisabledStatusOfButtons);
+				layer.on("graphic-remove", setDisabledStatusOfButtons);
+
+				layer.on("graphic-add", postGraphicAddMessage);
+				layer.on("graphic-remove", postGraphicRemoveMessage);
 			});
 
 			// Setup the locator.
@@ -173,7 +191,7 @@ require(["dojo/on",
 
 			// Setup the map click event that will call the geocoder service.
 			map.on("click", function (evt) {
-				if (evt.mapPoint) {
+				if (evt.mapPoint && !hasExceededRouteLimit()) {
 					locator.locationToIntersection(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
 						var graphic = new Graphic();
 						graphic.setGeometry(addressCandidate.location);
