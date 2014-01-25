@@ -7,13 +7,37 @@
 			width: 640px;
 			height: 480px;
 		}
+		iframe[data-route-limit='1'] {
+			width: 320px;
+			height: 240px;
+		}
+		iframe + table {
+			display: inline-table;
+			vertical-align: top;
+		}
+		table, th, td {
+			border: 0.1em solid black;
+		}
 	</style>
 </head>
 <body>
-	<h2>Unlimited features</h2>
-	<iframe id="defaultFunctionality" src="routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
-	<h2>Restricted to a single route</h2>
-	<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
+	<section>
+		<h1>Unlimited features</h1>
+		<iframe id="defaultFunctionality" src="routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
+		<table id="routeTable">
+			<thead>
+				<tr><th>Route Name</th><th>Options</th></tr>
+			</thead>
+			<tbody>
+
+			</tbody>
+		</table>
+	</section>
+	<section>
+		<h1>Restricted to a single route</h1>
+		<p>This iframe has a <code>data-route-limit="1"</code> attribute specified. Only one route can be added to this map.</p>
+		<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
+	</section>
 	<script>
 		window.addEventListener("message", function (/** {MessageEvent} */ e) {
 			console.log(e.data);
