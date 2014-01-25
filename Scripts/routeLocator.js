@@ -105,23 +105,33 @@ require([
 		 * @property {GraphicsLayer} target
 		 */
 
-		function postGraphicAddMessage(e) {
+		/** Posts a message to the parent window
+		 * @param {LayerGraphicEvent} e
+		 * @param {string} action
+		 */
+		function postGraphicMessage(e, action) {
 			var message = {
 				layerId: e.target.id,
-				action: "added",
+				action: action,
 				graphic: e.graphic.toJson()
 			};
+			message.name = e.graphic.attributes.Name;
 			message.wkt = getProjectedWkt(message.graphic.geometry);
 			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
 		}
 
+		/** Posts a message to the parent window
+		 * @param {LayerGraphicEvent} e
+		 */
+		function postGraphicAddMessage(e) {
+			postGraphicMessage(e, "added");
+		}
+
+		/** Posts a message to the parent window
+		 * @param {LayerGraphicEvent} e
+		 */
 		function postGraphicRemoveMessage(e) {
-			var message = {
-				layerId: e.target.id,
-				action: "removed",
-				graphic: e.graphic.toJson()
-			};
-			window.parent.postMessage(message, [location.protocol, location.host].join("//"));
+			postGraphicAddMessage(e, "removed");
 		}
 
 		/** Removes the last graphic from a layer list.
