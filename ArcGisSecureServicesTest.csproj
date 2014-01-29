@@ -62,7 +62,9 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="demo.html" />
+    <Content Include="Demos\route-limit-demo.html" />
+    <Content Include="Demos\demo.html" />
+    <Content Include="index.html" />
     <Content Include="routeLocator.html" />
     <Content Include="Scripts\routeLocator.js" />
     <Content Include="Scripts\wsdot\tasks\intersectionLocator.js" />

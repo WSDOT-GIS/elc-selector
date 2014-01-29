@@ -1,16 +1,12 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>Demo</title>
 	<style>
 		iframe {
 			width: 640px;
 			height: 480px;
 		}
-		/*iframe[data-route-limit='1'] {
-			width: 320px;
-			height: 240px;
-		}*/
 		iframe + table {
 			display: inline-table;
 			vertical-align: top;
@@ -21,23 +17,38 @@
 	</style>
 </head>
 <body>
+	<h1>Route locator demo</h1>
+	<p>This page demonstrates the route locator control.</p>
 	<section>
-		<h1>Unlimited features</h1>
-		<iframe id="defaultFunctionality" src="routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
+		<iframe id="defaultFunctionality" src="../routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
 		<table id="routeTable">
 			<thead>
 				<tr><th>Route Name</th><th>Options</th></tr>
 			</thead>
-			<tbody>
-
-			</tbody>
+			<tbody></tbody>
 		</table>
 	</section>
-	<!--<section>
-		<h1>Restricted to a single route</h1>
-		<p>This iframe has a <code>data-route-limit="1"</code> attribute specified. Only one route can be added to this map.</p>
-		<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
-	</section>-->
+	<section>
+		<h1>Adding routes</h1>
+		<ul>
+			<li>Click on an intersection</li>
+			<li>Click on a second intersection</li>
+			<li>Once you have located two intersections, you can double-click anywhere on the map to find a route between the two intersection points.</li>
+			<li>You can continue in this fashon to add more routes.</li>
+		</ul>
+	</section>
+	<section>
+		<h1>Removing Routes</h1>
+		<ul>
+			<li>You can click the <em>Delete</em> button to delete the last route that was added to the map.</li>
+			<li>You can click the <em>Clear</em> button to delete all routes from the map.</li>
+		</ul>
+	</section>
+	<section>
+		<h1>Communicating with the control</h1>
+		<p>The host page can send messages to the control that will add or remove routes from the map.</p>
+	</section>
+
 	<script>
 		(function () {
 			"use strict";
@@ -47,8 +58,15 @@
 			 * @this {HTMLButtonElement}
 			 */
 			function sendRouteDeleteMessage(e) {
-				var button = e.target || e.srcElement || e.toElement;
-				var routeName = button.value;
+				var button, routeName;
+				// Get the button that was clicked.
+				button = e.target || e.srcElement || e.toElement;
+				// The name of the associated route is stored in the button's "value" attribute.
+				routeName = button.value;
+				// Since there is only one iframe on this page, we know that window.frames[0]
+				// will return the window inside of that iframe.
+				//
+				// Post a "delete" message to the window in the iframe.
 				window.frames[0].postMessage({
 					action: "delete",
 					name: routeName
@@ -63,6 +81,7 @@
 						// Add a row to the table for the added route.
 						row = table.insertRow(-1);
 						row.dataset.routeName = e.data.name;
+						
 						cell = row.insertCell(-1);
 						cell.innerText = e.data.name;
 						cell = row.insertCell(-1);
