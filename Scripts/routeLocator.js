@@ -269,13 +269,22 @@ require([
 	 * @param {Object} e.data
 	 * @param {string} e.data.action - The action name. E.g., "delete"
 	 * @param {string} e.data.name - The name of the route. E.g., "Hewitt Ave & 20th St SE, Lake Stevens, Washington  98258 - Hewitt Ave & 20th St SE, Lake Stevens, Washington  98258"
+	 * @param {string} [e.data.wkt] - The 2927 Simple Geometry WKT of the route. This property will only be present if action is "add".
 	 */
 	function handleRouteMessage(e) {
-		var data = e.data;
+		var data = e.data, graphic;
 		if (data.action === "delete") {
 			deleteGraphicWithMatchingName(data.name);
 		} else if (data.action === "add") {
-			console.error("Add functionality not yet implemented.");
+			try {
+				graphic = ciaRouteToFeature(e.data);
+				routesLayer.add(graphic);
+			} catch (err) {
+				window.parent.postMessage({
+					error: err,
+					sourceMessage: e.data
+				}, [location.protocol, location.host].join("//"));
+			}
 		}
 	}
 
