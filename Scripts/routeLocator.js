@@ -68,6 +68,35 @@ require([
 		return projected;
 	}
 
+	/** @typedef {Object} CiaRoute
+	 * @property {string} wkt - The route geometry in OGC Simple Geometry, in 2927 projection.
+	 * @property {string} name - The route's name.
+	 */
+
+	/** Converts a CIA route into a graphic.
+	 * @param {CiaRoute} ciaRoute
+	 * @returns {Graphic}
+	 */
+	function ciaRouteToFeature(ciaRoute) {
+		if (!ciaRoute.wkt || !ciaRoute.name) {
+			throw new TypeError("Invalid route. Must have both wkt and name properties.");
+		}
+		var wkt = ciaRoute, name = ciaRoute.name;
+		// Convert the WKT into a Terraformer geometry (i.e., representation of GeoJSON).
+		var tfObj = Terraformer.WKT.parse(wkt);
+		// Create a Terraformer feature from the TF geometry.
+		tfObj = new Terraformer.Feature(tfObj);
+		// Assign the route name to the TF Feature's ID property.
+		tfObj.id = name;
+		// Convert the TF feature into an ArcGIS Graphic.
+		var graphic = Terraformer.ArcGIS.parse(tfObj, {
+			sr: 2927,
+			idAttribute: "Name"
+		});
+		graphic = new Graphic(graphic);
+		return graphic;
+	}
+
 	// Get the route limit
 	//routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
 	routeLimit = window.frameElement ? Number(window.frameElement.getAttribute("data-route-limit")) : null;
