@@ -66,6 +66,7 @@
 						cell = row.insertCell(-1);
 						cell.innerText = e.data.name;
 						cell = row.insertCell(-1);
+						// Create a button that, when clicked, will delete the corresponding route in the map.
 						deleteButton = document.createElement("button");
 						deleteButton.type = "button";
 						deleteButton.value = e.data.name;
@@ -73,12 +74,11 @@
 						deleteButton.addEventListener("click", sendRouteDeleteMessage, true);
 						cell.appendChild(deleteButton);
 					} else if (e.data.action === "removed") {
-						// Remove the row from the table corresponding to the removed row.
+						// Remove the row from the table corresponding to the removed route.
 						qs = document.querySelector("tr[data-route-name='" + e.data.name + "']");
 						qs.remove();
 					}
 				}
-				console.log(e);
 			});
 		}());
 	</script>

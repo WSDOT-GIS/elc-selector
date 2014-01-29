@@ -351,7 +351,6 @@ require([
 					}
 
 					stopsLayer.clear();
-					window.console.log(solveResults);
 				}, routeParams, function (error) {
 					window.console.error(error);
 				});
