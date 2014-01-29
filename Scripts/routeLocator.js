@@ -131,7 +131,7 @@ require([
 		 * @param {LayerGraphicEvent} e
 		 */
 		function postGraphicRemoveMessage(e) {
-			postGraphicAddMessage(e, "removed");
+			postGraphicMessage(e, "removed");
 		}
 
 		/** Removes the last graphic from a layer list.

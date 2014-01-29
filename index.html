@@ -39,9 +39,34 @@
 		<iframe id="singleRouteLimit" src="routeLocator.html" sandbox="allow-scripts allow-same-origin" data-route-limit="1"></iframe>
 	</section>
 	<script>
-		window.addEventListener("message", function (/** {MessageEvent} */ e) {
-			console.log(e.data);
-		});
+		(function () {
+			"use strict";
+
+			window.addEventListener("message", function (/** {MessageEvent} */ e) {
+				var table, row, cell, deleteButton, qs;
+				if (e.data.layerId === "routes") {
+					table = document.getElementById("routeTable");
+					if (e.data.action === "added") {
+						// Add a row to the table for the added route.
+						row = table.insertRow(-1);
+						row.dataset.routeName = e.data.name;
+						cell = row.insertCell(-1);
+						cell.innerText = e.data.name;
+						cell = row.insertCell(-1);
+						deleteButton = document.createElement("button");
+						deleteButton.type = "button";
+						deleteButton.innerText = "Delete";
+						deleteButton.disabled = true;
+						cell.appendChild(deleteButton);
+					} else if (e.data.action === "removed") {
+						// Remove the row from the table corresponding to the removed row.
+						qs = document.querySelector("tr[data-route-name='" + e.data.name + "']");
+						qs.remove();
+					}
+				}
+				console.log(e);
+			});
+		}());
 	</script>
 </body>
 </html>
