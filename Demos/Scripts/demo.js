@@ -67,6 +67,10 @@
 				deleteButton.textContent = "Delete";
 				deleteButton.addEventListener("click", sendRouteDeleteMessage, true);
 				cell.appendChild(deleteButton);
+
+				cell = row.insertCell(-1);
+				cell.textContent = e.data.wkt;
+
 			} else if (e.data.action === "removed") {
 				// Remove the row from the table corresponding to the removed route.
 				row = document.querySelector("tr[data-route-name='" + e.data.name + "']");

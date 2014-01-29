@@ -1,5 +1,5 @@
 ﻿/*global require, Terraformer*/
-/*jslint browser:true, white:true*/
+/*jslint browser:true, white:true,vars:true*/
 require([
 	"esri/urlUtils",
 	"esri/map",
@@ -29,25 +29,62 @@ require([
 	waPrj = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +to_meter=0.3048006096012192 +no_defs";
 	mapPrj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
 
+	/** @typedef {(string|proj4.Proj)} Projection
+	 * 
+	 */
+
+	/** @typedef {object} ThisProjectionInfo
+	 * @property {?Projection} inPrj
+	 * @property {?Projection} outPrj
+	 */
+
+	/**
+	 * @this {ThisProjectionInfo}
+	 */
+	function projectMap(a) {
+		/*jshint validthis:true*/
+		return projectCoords(a, this.inPrj, this.outPrj);
+		/*jshint validthis:false*/
+	}
+
+
+	/** projects coordinates in an array.
+	 * @param {(Number[]|Array<Array<Number>>|<Array<Array<Array<Number>>>)} array - An array of numbers or an array containing arrays of numbers.
+	 * @param {Projection} inPrj - input projection.
+	 * @param {Projection} [outPrj] - output projection.
+	 */
+	function projectCoords(array, inPrj, outPrj) {
+		var output;
+
+		if (array && array.length) {
+			if (array[0] instanceof Array) {
+				output = array.map(projectMap, {
+					inPrj: inPrj,
+					outPrj: outPrj
+				});
+			} else if (typeof array[0] === "number") {
+				output = proj4(inPrj, outPrj, array);
+			}
+		} else {
+			output = array;
+		}
+		return output;
+	}
+
 	/**
 	 * Converts an ArcGIS JS API polyline or polygon in the Web Merc. Aux. Sphere projectetion into WA SPS projected WKT.
 	 * @returns {string}
 	 */
-	function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g) {
-		var path, coords, output = [], outPath, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null, i, l, j, jl;
+	function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g, inPrj, outPrj) {
+		var output, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null /*,path, coords, outPath, i, l, j, jl*/;
+		// Set default value for input projection.
+		inPrj = inPrj || mapPrj;
+		outPrj = outPrj || waPrj;
 		if (pathsPropName) {
-			for (i = 0, l = g[pathsPropName].length; i < l; i += 1) {
-				path = g[pathsPropName][i];
-				outPath = [];
-				for (j = 0, jl = path.length; j < jl; j += 1) {
-					coords = path[j];
-					outPath.push(proj4(mapPrj, waPrj, coords));
-				}
-				output.push(outPath);
-			}
+			output = projectCoords(g[pathsPropName], inPrj, outPrj);
 		}
 
-		output = new Terraformer.MultiLineString(output);
+		output = pathsPropName === "paths" ? new Terraformer.MultiLineString(output) : new Terraformer.Polygon(output);
 		output = Terraformer.WKT.convert(output);
 
 		return output;
@@ -85,11 +122,10 @@ require([
 		var wkt = ciaRoute.wkt, name = ciaRoute.name;
 		// Convert the WKT into a Terraformer geometry (i.e., representation of GeoJSON).
 		var tfObj = Terraformer.WKT.parse(wkt);
+		var projectedCoords = projectCoords(tfObj.coordinates, waPrj, mapPrj);
 		var geometry = new Polyline({
-			paths: tfObj.coordinates,
-			spatialReference: {
-				wkid: 2927
-			}
+			paths: projectedCoords,
+			spatialReference: map.spatialReference
 		});
 		var graphic = new Graphic({
 			geometry: geometry,
@@ -111,11 +147,13 @@ require([
 	}
 
 	function hasExceededRouteLimit() {
+		var output;
 		if (!routeLimit) {
-			return false;
+			output = false;
 		} else {
-			return routesLayer.graphics.length >= routeLimit;
+			output = routesLayer.graphics.length >= routeLimit;
 		}
+		return output;
 	}
 
 	// Store the protocol (e.g., "https:")
@@ -285,14 +323,16 @@ require([
 	 * @param {string} [e.data.wkt] - The 2927 Simple Geometry WKT of the route. This property will only be present if action is "add".
 	 */
 	function handleRouteMessage(e) {
-		var data = e.data, graphic;
+		var data = e.data, graphic, extent;
 		if (data.action === "delete") {
 			deleteGraphicWithMatchingName(data.name);
 		} else if (data.action === "add") {
 			try {
 				graphic = ciaRouteToFeature(e.data);
 				routesLayer.add(graphic);
-				map.setExtent(graphic.geometry.getExtent());
+				// Zoom the map to the graphic
+				extent = graphic.geometry.getExtent();
+				map.setExtent(extent);
 			} catch (err) {
 				window.parent.postMessage({
 					error: err.message,
