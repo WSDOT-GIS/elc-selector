@@ -1,4 +1,5 @@
-﻿(function () {
+﻿/*jslint white:true,browser:true*/
+(function () {
 	"use strict";
 
 	/** Sends a "delete" message to the window inside of the iframe.
@@ -22,7 +23,7 @@
 	}
 
 	window.addEventListener("message", function (/** {MessageEvent} */ e) {
-		var table, row, cell, deleteButton, qs;
+		var table, row, cell, deleteButton;
 		if (e.data.layerId === "routes") {
 			table = document.getElementById("routeTable");
 			if (e.data.action === "added") {
@@ -42,8 +43,8 @@
 				cell.appendChild(deleteButton);
 			} else if (e.data.action === "removed") {
 				// Remove the row from the table corresponding to the removed route.
-				qs = document.querySelector("tr[data-route-name='" + e.data.name + "']");
-				qs.remove();
+				row = document.querySelector("tr[data-route-name='" + e.data.name + "']");
+				table.querySelector("tbody").removeChild(row);
 			}
 		}
 	});
