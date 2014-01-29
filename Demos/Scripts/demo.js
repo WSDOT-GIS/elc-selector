@@ -22,6 +22,31 @@
 		}, [location.protocol, location.host].join("//"));
 	}
 
+
+	function addRoute(/**{Event}*/ e) {
+		// Get the values from the text boxes.
+		var form = e.srcElement || e.target, name = form[0].value, wkt = form[1].value;
+
+		if (!name) {
+			alert("Route name was not provided.");
+		} else if (!wkt) {
+			alert("Route geometry WKT was not provided.");
+		} else {
+			window.frames[0].postMessage({
+				action: "add",
+				name: name,
+				wkt: wkt
+			}, [location.protocol, location.host].join("//"));
+		}
+
+		// Return false to prevent form submission (i.e., reload of page with query string).
+		return false;
+	}
+
+	// Using addEventListener on the form does not prevent submission event if returning false. 
+	// Must assign to onsubmit.
+	window.document.forms.addRouteForm.onsubmit = addRoute;
+
 	window.addEventListener("message", function (/** {MessageEvent} */ e) {
 		var table, row, cell, deleteButton;
 		if (e.data.layerId === "routes") {
@@ -45,7 +70,7 @@
 			} else if (e.data.action === "removed") {
 				// Remove the row from the table corresponding to the removed route.
 				row = document.querySelector("tr[data-route-name='" + e.data.name + "']");
-				table.querySelector("tbody").removeChild(row);
+				row.parentNode.removeChild(row);
 			}
 		}
 	});

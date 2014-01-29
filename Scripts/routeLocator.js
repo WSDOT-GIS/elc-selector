@@ -9,6 +9,7 @@ require([
 	"esri/symbols/SimpleMarkerSymbol",
 	"esri/symbols/SimpleLineSymbol",
 	"esri/graphic",
+	"esri/geometry/Polyline",
 	"esri/InfoTemplate",
 	"esri/dijit/Basemap",
 	"esri/dijit/BasemapLayer",
@@ -19,7 +20,7 @@ require([
 	"wsdot/tasks/intersectionLocator",
 	"proj4js"
 ], function (urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer,
+		SimpleLineSymbol, Graphic, Polyline, InfoTemplate, Basemap, BasemapLayer,
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator, proj4) {
 	"use strict";
@@ -81,19 +82,22 @@ require([
 		if (!ciaRoute.wkt || !ciaRoute.name) {
 			throw new TypeError("Invalid route. Must have both wkt and name properties.");
 		}
-		var wkt = ciaRoute, name = ciaRoute.name;
+		var wkt = ciaRoute.wkt, name = ciaRoute.name;
 		// Convert the WKT into a Terraformer geometry (i.e., representation of GeoJSON).
 		var tfObj = Terraformer.WKT.parse(wkt);
-		// Create a Terraformer feature from the TF geometry.
-		tfObj = new Terraformer.Feature(tfObj);
-		// Assign the route name to the TF Feature's ID property.
-		tfObj.id = name;
-		// Convert the TF feature into an ArcGIS Graphic.
-		var graphic = Terraformer.ArcGIS.parse(tfObj, {
-			sr: 2927,
-			idAttribute: "Name"
+		var geometry = new Polyline({
+			paths: tfObj.coordinates,
+			spatialReference: {
+				wkid: 2927
+			}
 		});
-		graphic = new Graphic(graphic);
+		var graphic = new Graphic({
+			geometry: geometry,
+			attributes: {
+				"Name": name
+			}
+		});
+
 		return graphic;
 	}
 
@@ -288,9 +292,10 @@ require([
 			try {
 				graphic = ciaRouteToFeature(e.data);
 				routesLayer.add(graphic);
+				map.setExtent(graphic.geometry.getExtent());
 			} catch (err) {
 				window.parent.postMessage({
-					error: err,
+					error: err.message,
 					sourceMessage: e.data
 				}, [location.protocol, location.host].join("//"));
 			}

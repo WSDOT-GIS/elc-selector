@@ -7,7 +7,7 @@
 			width: 640px;
 			height: 480px;
 		}
-		iframe + table {
+		iframe + table, iframe + table + section {
 			display: inline-table;
 			vertical-align: top;
 		}
@@ -27,7 +27,16 @@
 			</thead>
 			<tbody></tbody>
 		</table>
+		<section>
+			<h1>Add a route</h1>
+			<form id="addRouteForm" method="get" action="#">
+				<label for="routeNameBox">Name</label><input id="routeNameBox" name="name" type="text" required="required" />
+				<label for="wktBox">Route Geometry</label><input id="wktBox" name="wkt" type="text" required="required" value="MULTILINESTRING((-13549332.848758452 6007607.050961201,-13637999.801569251 5908544.662303617,-13508362.6015976 5899983.715135678,-13403796.746903483 5969694.284931756,-13490017.714809157 6068145.177363058))" />
+				<button type="submit">Add Route</button>
+			</form>
+		</section>
 	</section>
+
 	<section>
 		<h1>Adding routes</h1>
 		<ul>
