@@ -25,7 +25,7 @@ define([
 	}
 
 	return declare(Locator, {
-
+		/*jshint unused:false*/
 		/** Creates the intersectionLocator
 		 * @param {String} url
 		 * @constructs
@@ -33,6 +33,7 @@ define([
 		constructor: function (url) {
 			// Base constructor is called automatically.
 		},
+		/*jshint unused:true*/
 
 		_emitIntersectionLocated: function (json) {
 			var addressCandidate;

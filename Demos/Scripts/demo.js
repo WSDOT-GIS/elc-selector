@@ -29,7 +29,8 @@
 			if (e.data.action === "added") {
 				// Add a row to the table for the added route.
 				row = table.insertRow(-1);
-				row.dataset.routeName = e.data.name;
+				//row.dataset.routeName = e.data.name;
+				row.setAttribute("data-route-name", e.data.name);
 
 				cell = row.insertCell(-1);
 				cell.textContent = e.data.name;

@@ -69,7 +69,8 @@ require([
 	}
 
 	// Get the route limit
-	routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
+	//routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
+	routeLimit = window.frameElement ? Number(window.frameElement.getAttribute("data-route-limit")) : null;
 
 	function hasExceededRouteLimit() {
 		return routeLimit !== null && routesLayer.graphics.length >= routeLimit;
