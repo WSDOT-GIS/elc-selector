@@ -69,11 +69,20 @@ require([
 	}
 
 	// Get the route limit
-	//routeLimit = window.frameElement ? Number(window.frameElement.dataset.routeLimit) : null;
-	routeLimit = window.frameElement ? Number(window.frameElement.getAttribute("data-route-limit")) : null;
+	if (window.frameElement) {
+		if (window.frameElement.dataset) {
+			routeLimit = Number(window.frameElement.dataset.routeLimit) || null;
+		} else {
+			routeLimit = Number(window.frameElement.getAttribute("data-route-limit")) || null;
+		}
+	}
 
 	function hasExceededRouteLimit() {
-		return routeLimit !== null && routesLayer.graphics.length >= routeLimit;
+		if (!routeLimit) {
+			return false;
+		} else {
+			return routesLayer.graphics.length >= routeLimit;
+		}
 	}
 
 	// Store the protocol (e.g., "https:")
