@@ -3,7 +3,6 @@
 require([
 	"esri/urlUtils",
 	"esri/map",
-	"esri/geometry/Point",
 	"esri/layers/GraphicsLayer",
 	"esri/tasks/RouteTask",
 	"esri/renderers/SimpleRenderer",
@@ -13,15 +12,14 @@ require([
 	"esri/InfoTemplate",
 	"esri/dijit/Basemap",
 	"esri/dijit/BasemapLayer",
-	"esri/layers/ArcGISDynamicMapServiceLayer",
 	"esri/tasks/RouteParameters",
 	"esri/tasks/FeatureSet",
 	"esri/units",
 	"dojo/_base/connect",
 	"wsdot/tasks/intersectionLocator",
 	"proj4js"
-], function (urlUtils, Map, Point, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer, ArcGISDynamicMapServiceLayer,
+], function (urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
+		SimpleLineSymbol, Graphic, InfoTemplate, Basemap, BasemapLayer,
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator, proj4) {
 	"use strict";
@@ -35,12 +33,12 @@ require([
 	 * @returns {string}
 	 */
 	function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g) {
-		var path, coords, output = [], outPath, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null;
+		var path, coords, output = [], outPath, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null, i, l, j, jl;
 		if (pathsPropName) {
-			for (var i = 0, l = g[pathsPropName].length; i < l; i += 1) {
+			for (i = 0, l = g[pathsPropName].length; i < l; i += 1) {
 				path = g[pathsPropName][i];
 				outPath = [];
-				for (var j = 0, jl = path.length; j < jl; j += 1) {
+				for (j = 0, jl = path.length; j < jl; j += 1) {
 					coords = path[j];
 					outPath.push(proj4(mapPrj, waPrj, coords));
 				}
@@ -172,11 +170,11 @@ require([
 	 * @returns {Graphic}
 	 */
 	function getGraphicWithMatchingAttribute(layer, attrName, value) {
-		var output = null, graphic;
+		var output = null, graphic, i, l;
 		if (!layer || !attrName) {
 			throw new TypeError("The layer and attrName parameters cannot be null.");
 		}
-		for (var i = 0, l = layer.graphics.length; i < l; i += 1) {
+		for (i = 0, l = layer.graphics.length; i < l; i += 1) {
 			graphic = layer.graphics[i];
 			if (graphic.attributes[attrName] === value) {
 				output = graphic;
