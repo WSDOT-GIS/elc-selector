@@ -2,25 +2,7 @@
 <html>
 <head>
 	<title>Demo</title>
-	<style>
-		iframe {
-			width: 640px;
-			height: 480px;
-		}
-		iframe + table, iframe + table + section {
-			display: inline-table;
-			vertical-align: top;
-		}
-		table, th, td {
-			border: 0.1em solid black;
-		}
-		table td:last-child {
-			font-size:xx-small;
-		}
-		.add-route-section {
-			border: 0.5em inset #d3d3d3;
-		}
-	</style>
+	<link href="Style/demo.css" rel="stylesheet" />
 </head>
 <body>
 	<h1>Route locator demo</h1>
@@ -28,6 +10,7 @@
 	<section>
 		<iframe id="defaultFunctionality" src="../routeLocator.html" sandbox="allow-scripts allow-same-origin"></iframe>
 		<table id="routeTable">
+			<caption>Routes on the map</caption>
 			<thead>
 				<tr><th>Route Name</th><th>Options</th><th>WKT</th></tr>
 			</thead>
@@ -36,32 +19,36 @@
 		<section class="add-route-section">
 			<h1>Add a route</h1>
 			<form id="addRouteForm" method="get" action="#">
-				<label for="routeNameBox">Name</label><input id="routeNameBox" name="name" type="text" required="required" value="Broadway Ave & Broadway, Everett, Washington 98201 - Walnut St & 19th St, Everett, Washington 98201" />
-				<label for="wktBox">Route Geometry</label><input id="wktBox" name="wkt" type="text" required="required" value="MULTILINESTRING ((1223777.0363042844 974286.4877314497, 1223938.2201942692 974283.0114034093, 1224134.034042901 974275.1403943684, 1224479.137976391 974260.4061827295, 1224824.3207972972 974249.3260566639, 1225166.9767773708 974234.6568202889, 1225355.44553889 974226.9561236326, 1225678.5910223026 974216.3648700896, 1226026.145269376 974201.605709979, 1226363.9833900325 974190.7107071971, 1226613.669640333 974181.7100408279, 1226711.5383624418 974175.9640957135, 1226712.493497515 974175.9041439623))" />
+				<label for="routeNameBox">Name</label>
+				<input id="routeNameBox" name="name" type="text" required="required" value="Broadway Ave & Broadway, Everett, Washington 98201 - Walnut St & 19th St, Everett, Washington 98201" />
+				<label for="wktBox">Route Geometry</label>
+				<input id="wktBox" name="wkt" type="text" required="required" value="MULTILINESTRING ((1223777.0363042844 974286.4877314497, 1223938.2201942692 974283.0114034093, 1224134.034042901 974275.1403943684, 1224479.137976391 974260.4061827295, 1224824.3207972972 974249.3260566639, 1225166.9767773708 974234.6568202889, 1225355.44553889 974226.9561236326, 1225678.5910223026 974216.3648700896, 1226026.145269376 974201.605709979, 1226363.9833900325 974190.7107071971, 1226613.669640333 974181.7100408279, 1226711.5383624418 974175.9640957135, 1226712.493497515 974175.9041439623))" />
 				<button type="submit">Add Route</button>
 			</form>
 		</section>
 	</section>
 
-	<section>
-		<h1>Adding routes</h1>
-		<ul>
-			<li>Click on an intersection</li>
-			<li>Click on a second intersection</li>
-			<li>Once you have located two intersections, you can double-click anywhere on the map to find a route between the two intersection points.</li>
-			<li>You can continue in this fashon to add more routes.</li>
-		</ul>
-	</section>
-	<section>
-		<h1>Removing Routes</h1>
-		<ul>
-			<li>You can click the <em>Delete</em> button to delete the last route that was added to the map.</li>
-			<li>You can click the <em>Clear</em> button to delete all routes from the map.</li>
-		</ul>
-	</section>
-	<section>
-		<h1>Communicating with the control</h1>
-		<p>The host page can send messages to the control that will add or remove routes from the map.</p>
+	<section class="instructions">
+		<section>
+			<h1>Adding routes</h1>
+			<ul>
+				<li>Click on an intersection</li>
+				<li>Click on a second intersection</li>
+				<li>Once you have located two intersections, you can double-click anywhere on the map to find a route between the two intersection points.</li>
+				<li>You can continue in this fashon to add more routes.</li>
+			</ul>
+		</section>
+		<section>
+			<h1>Removing Routes</h1>
+			<ul>
+				<li>You can click the <em>Delete</em> button to delete the last route that was added to the map.</li>
+				<li>You can click the <em>Clear</em> button to delete all routes from the map.</li>
+			</ul>
+		</section>
+		<section>
+			<h1>Communicating with the control</h1>
+			<p>The host page can send messages to the control that will add or remove routes from the map.</p>
+		</section>
 	</section>
 	<script src="Scripts/demo.js"></script>
 </body>

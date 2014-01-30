@@ -425,6 +425,27 @@ require([
 			}
 		});
 
+		function solveHandler(solveResults) {
+			/* 
+			@param {Array} solveResults.barriers
+			@param {Array} solveResults.messages
+			@param {Array} solveResults.polygonBarriers
+			@param {Array} solveResults.polylineBarriers
+			@param {esri.tasks.RouteResult[]} solveResults.routeResults
+
+			{Graphic} routeResult.route
+			{string} routeResult.routeName
+			*/
+			var i, l;
+			if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
+				for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
+					routesLayer.add(solveResults.routeResults[i].route);
+				}
+			}
+
+			stopsLayer.clear();
+		}
+
 		// Setup the map double-click event to call the route service when two or more geocoded points are displayed on the map.
 		map.on("dbl-click", function (event) {
 			if (event.mapPoint && stopsLayer.graphics.length >= 2) {
@@ -440,26 +461,7 @@ require([
 				routeParams.outSpatialReference = map.spatialReference;
 				routeParams.restrictionAttributes = ["none"];
 
-				routeTask.solve(routeParams, function (solveResults) {
-					/* 
-					@param {Array} solveResults.barriers
-					@param {Array} solveResults.messages
-					@param {Array} solveResults.polygonBarriers
-					@param {Array} solveResults.polylineBarriers
-					@param {esri.tasks.RouteResult[]} solveResults.routeResults
-
-					{Graphic} routeResult.route
-					{string} routeResult.routeName
-					*/
-					var i, l;
-					if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
-						for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
-							routesLayer.add(solveResults.routeResults[i].route);
-						}
-					}
-
-					stopsLayer.clear();
-				}, routeParams, function (error) {
+				routeTask.solve(routeParams, solveHandler, routeParams, function (error) {
 					window.console.error(error);
 				});
 			}

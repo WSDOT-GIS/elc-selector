@@ -65,6 +65,7 @@
     <Content Include="Demos\route-limit-demo.html" />
     <Content Include="Demos\demo.html" />
     <Content Include="Demos\Scripts\demo.js" />
+    <Content Include="Demos\Style\demo.css" />
     <Content Include="index.html" />
     <Content Include="routeLocator.html" />
     <Content Include="Scripts\routeLocator.js" />
