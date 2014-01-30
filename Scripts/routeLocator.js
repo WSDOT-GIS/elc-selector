@@ -38,7 +38,12 @@ require([
 	 * @property {?Projection} outPrj
 	 */
 
-	/**
+	/** @typedef {(Number[]|Array<Array<Number>>|<Array<Array<Array<Number>>>)} ProjectableArray
+	 * 
+	 */
+
+	/** For use with the Array.prototype.map() function.
+	 * @param {ProjectableArray} a
 	 * @this {ThisProjectionInfo}
 	 */
 	function projectMap(a) {
@@ -49,9 +54,10 @@ require([
 
 
 	/** projects coordinates in an array.
-	 * @param {(Number[]|Array<Array<Number>>|<Array<Array<Array<Number>>>)} array - An array of numbers or an array containing arrays of numbers.
+	 * @param {ProjectableArray} array - An array of numbers or an array containing arrays of numbers.
 	 * @param {Projection} inPrj - input projection.
 	 * @param {Projection} [outPrj] - output projection.
+	 * @returns {ProjectableArray} - The projected version of the input array.
 	 */
 	function projectCoords(array, inPrj, outPrj) {
 		var output;
@@ -75,7 +81,7 @@ require([
 	 * Converts an ArcGIS JS API polyline or polygon in the Web Merc. Aux. Sphere projectetion into WA SPS projected WKT.
 	 * @returns {string}
 	 */
-	function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g, inPrj, outPrj) {
+	function getProjectedTerraformerPrimitive(/**{(Polyline|Polygon)}*/ g, inPrj, outPrj) {
 		var output, pathsPropName = g.paths ? "paths" : g.rings ? "rings" : null /*,path, coords, outPath, i, l, j, jl*/;
 		// Set default value for input projection.
 		inPrj = inPrj || mapPrj;
@@ -84,9 +90,20 @@ require([
 			output = projectCoords(g[pathsPropName], inPrj, outPrj);
 		}
 
+		// The geometry type is determined by presence of either "paths" or "rings" attribute.
 		output = pathsPropName === "paths" ? new Terraformer.MultiLineString(output) : new Terraformer.Polygon(output);
-		output = Terraformer.WKT.convert(output);
 
+		return output;
+	}
+
+	/**
+	 * Converts an ArcGIS JS API polyline or polygon in the Web Merc. Aux. Sphere projectetion into WA SPS projected WKT.
+	 * @returns {string}
+	 */
+	function getProjectedMultiLinestring(/**{(Polyline|Polygon)}*/ g, inPrj, outPrj) {
+		var output;
+		output = getProjectedTerraformerPrimitive(g, inPrj, outPrj);
+		output = Terraformer.WKT.convert(output);
 		return output;
 	}
 
