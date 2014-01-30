@@ -96,7 +96,6 @@
     <Content Include="proxy.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ReverseGeocodeIntersection.ashx" />
