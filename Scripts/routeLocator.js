@@ -24,7 +24,7 @@ require([
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator, proj4) {
 	"use strict";
-	var map, locator, routeTask, stopsLayer, routesLayer, protocol, routeLimit, waPrj, mapPrj;
+	var map, locator, routeTask, stopsLayer, routesLayer, protocol, waPrj, mapPrj;
 
 	waPrj = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +to_meter=0.3048006096012192 +no_defs";
 	mapPrj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
@@ -154,17 +154,27 @@ require([
 		return graphic;
 	}
 
-	// Get the route limit
-	if (window.frameElement) {
+	/** 
+	 * Gets the maximum number of routes that can be added to the map, 
+	 * as determined by the data-route-limit attribute.
+	 * @returns {(number|null)}
+	 */
+	function getRouteLimit() {
+		var routeLimit;
 		if (window.frameElement.dataset) {
 			routeLimit = Number(window.frameElement.dataset.routeLimit) || null;
 		} else {
 			routeLimit = Number(window.frameElement.getAttribute("data-route-limit")) || null;
 		}
+		return routeLimit;
 	}
 
+	/** Determines if any more routes are allowed to be added to the map.
+	 * If no data-route-limit attribute has been specified, this always returns false.
+	 * @returns {boolean}
+	 */
 	function hasExceededRouteLimit() {
-		var output;
+		var output, routeLimit = getRouteLimit();
 		if (!routeLimit) {
 			output = false;
 		} else {
