@@ -1,0 +1,39 @@
+﻿body {
+	font-family: 'Century Gothic', futura, 'URW Gothic L', Verdana, sans-serif;
+}
+
+iframe {
+	width: 640px;
+	height: 480px;
+}
+iframe + table, iframe + table + section {
+	vertical-align: top;
+}
+iframe + table {
+	display: inline-table;
+}
+.add-route-section form label, .add-route-section form input {
+	display: block;
+}
+.add-route-section form input {
+	width: 95%;
+}
+table, th, td {
+		border: 0.1em solid black;
+	}
+table td:last-child {
+	font-size:xx-small;
+}
+.add-route-section {
+	border: 0.5em solid #d3d3d3;
+	padding: 0.2em 1em;
+}
+.instructions > section {
+	display: inline-block;
+	vertical-align: top;
+	background-color: lightblue;
+	margin: 0.2em;
+	padding: 1em;
+	text-align: justify;
+	justify-content: flex-end;
+}
