@@ -325,11 +325,11 @@ require([
 	});
 
 	connect.connect(map, "onUpdateStart", function () {
-		document.getElementById("mapProgress").hidden = false;
+		document.getElementById("mapProgress").style.visibility = "";
 	});
 
 	connect.connect(map, "onUpdateEnd", function () {
-		document.getElementById("mapProgress").hidden = true;
+		document.getElementById("mapProgress").style.visibility = "hidden";
 	});
 
 	/** Deletes a route from the routes layer.

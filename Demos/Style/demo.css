@@ -12,11 +12,15 @@ iframe + table, iframe + table + section {
 iframe + table {
 	display: inline-table;
 }
-.add-route-section form label, .add-route-section form input {
+.add-route-section form label, .add-route-section form input, .add-route-section form textarea {
 	display: block;
 }
-.add-route-section form input {
-	width: 95%;
+.add-route-section form input, .add-route-section form textarea {
+	width: 100%;
+}
+.add-route-section form textarea {
+	width: 100%;
+	height: 5em;
 }
 table, th, td {
 		border: 0.1em solid black;
@@ -25,9 +29,11 @@ table td:last-child {
 	font-size:xx-small;
 }
 .add-route-section {
-	border: 0.5em solid #d3d3d3;
+	background-color: #daefda;
 	padding: 0.2em 1em;
+	border-radius: 3em;
 }
+
 .instructions > section {
 	display: inline-block;
 	vertical-align: top;
@@ -36,4 +42,5 @@ table td:last-child {
 	padding: 1em;
 	text-align: justify;
 	justify-content: flex-end;
+	border-radius: 3em;
 }
