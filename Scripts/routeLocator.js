@@ -154,6 +154,21 @@ require([
 		return graphic;
 	}
 
+	/** Get routes from the data-routes attribute
+	 * @returns {(Graphic[]|null)} Returns an array of Graphics if a data-routes attribute is provided, null otherwise.
+	 */
+	function getRoutes() {
+		var output, json = window.frameElement.dataset ? window.frameElement.dataset.routes || null
+			: window.frameElement.getAttribute("data-routes") || null;
+		if (json) {
+			output = JSON.parse(json, function (k, v) {
+				return v && v.wkt && v.name ? ciaRouteToFeature(v) : v;
+			});
+		}
+
+		return output;
+	}
+
 	/** 
 	 * Gets the maximum number of routes that can be added to the map, 
 	 * as determined by the data-route-limit attribute.
@@ -482,5 +497,13 @@ require([
 				});
 			}
 		});
+
+		// Add any predefined routes.
+		var routes = getRoutes();
+		if (routes) {
+			routes.forEach(function (v) {
+				routesLayer.add(v);
+			});
+		}
 	});
 });
