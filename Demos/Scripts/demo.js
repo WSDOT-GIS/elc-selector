@@ -53,7 +53,7 @@
 			table = document.getElementById("routeTable");
 			if (e.data.action === "added") {
 				// Add a row to the table for the added route.
-				row = table.insertRow(-1);
+				row = document.createElement("tr");
 				//row.dataset.routeName = e.data.name;
 				row.setAttribute("data-route-name", e.data.name);
 
@@ -71,6 +71,7 @@
 				cell = row.insertCell(-1);
 				cell.textContent = e.data.wkt;
 
+				table.querySelector("tbody").appendChild(row);
 			} else if (e.data.action === "removed") {
 				// Remove the row from the table corresponding to the removed route.
 				row = document.querySelector("tr[data-route-name='" + e.data.name + "']");

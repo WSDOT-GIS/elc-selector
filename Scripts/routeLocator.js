@@ -200,6 +200,8 @@ require([
 		return output.join("");
 	}
 
+	/** Disables the clear and delete buttons of there are no graphics in the map.
+	 */
 	function setDisabledStatusOfButtons() {
 		var deleteButton = document.getElementById("deleteButton"), clearButton = document.getElementById("clearButton");
 		deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
@@ -253,8 +255,10 @@ require([
 
 	/** Event handler for delete button.
 	 * If the clicked button is the "clearButton", all graphics from a layer will be cleared.
+	 * @param {MouseEvent} e
+	 * @param {HTMLButtonElement} e.target
 	 */
-	function deleteStopOrRoute(/** {MouseEvent} */ e) {
+	function deleteStopOrRoute(e) {
 		var buttonId = e.target.id;
 		if (stopsLayer.graphics.length > 0) {
 			if (buttonId === "clearButton") {
@@ -334,6 +338,8 @@ require([
 		showAttribution: true
 	});
 
+
+	// Setup events to show a progress bar when the map is updating.
 	connect.connect(map, "onUpdateStart", function () {
 		document.getElementById("mapProgress").style.visibility = "";
 	});
@@ -342,7 +348,7 @@ require([
 		document.getElementById("mapProgress").style.visibility = "hidden";
 	});
 
-	/** Deletes a route from the routes layer.
+	/** Performs an action based on a message passed to the window from a parent.
 	 * @param {MessageEvent} e
 	 * @param {Object} e.data
 	 * @param {string} e.data.action - The action name. E.g., "delete"
@@ -369,7 +375,7 @@ require([
 		}
 	}
 
-	// Delete route 
+	// Add an event handler for messages passed to this window while hosted in an iframe from the parent window.
 	window.addEventListener("message", handleRouteMessage);
 
 	// Create the event handler for when the map finishes loading...
@@ -471,7 +477,7 @@ require([
 				routeParams.outSpatialReference = map.spatialReference;
 				routeParams.restrictionAttributes = ["none"];
 
-				routeTask.solve(routeParams, solveHandler, routeParams, function (error) {
+				routeTask.solve(routeParams, solveHandler, function (error) {
 					window.console.error(error);
 				});
 			}
