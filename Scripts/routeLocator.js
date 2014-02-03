@@ -9,6 +9,8 @@ require([
 	"esri/symbols/SimpleMarkerSymbol",
 	"esri/symbols/SimpleLineSymbol",
 	"esri/graphic",
+	"esri/SpatialReference",
+	"esri/geometry/Extent",
 	"esri/geometry/Polyline",
 	"esri/InfoTemplate",
 	"esri/dijit/Basemap",
@@ -20,7 +22,7 @@ require([
 	"wsdot/tasks/intersectionLocator",
 	"proj4js"
 ], function (urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, Polyline, InfoTemplate, Basemap, BasemapLayer,
+		SimpleLineSymbol, Graphic, SpatialReference, Extent, Polyline, InfoTemplate, Basemap, BasemapLayer,
 		RouteParameters, FeatureSet, Units, connect,
 		IntersectionLocator, proj4) {
 	"use strict";
@@ -198,6 +200,27 @@ require([
 		return output;
 	}
 
+	/**
+	 * Gets the extent from the iframe's data-extent attribute (if it exists).
+	 * @returns {(Extent|null)} Return the extent if one exists, null otherwise.
+	 */
+	function getExtentFromDataAttribute() {
+		var extent;
+		if (window.frameElement) {
+			if (window.frameElement.dataset) {
+				extent = window.frameElement.dataset.extent;
+			} else {
+				extent = window.frameElement.getAttribute("data-extent");
+			}
+		}
+		if (extent) {
+			// Split at commas into separate numbers.
+			extent = extent.split(",").map(function (v) { return Number(v); });
+			extent = new Extent(extent[0], extent[1], extent[2], extent[3], new SpatialReference({ wkid: 3857 }));
+		}
+		return extent;
+	}
+
 	// Store the protocol (e.g., "https:")
 	protocol = window.location.protocol;
 
@@ -338,20 +361,39 @@ require([
 		urlPrefix: protocol + "//route.arcgis.com"
 	});
 
+	/**
+	 * Creates the map options object for the Map constructor.
+	 * @returns {Object}
+	 */
+	function createMapOptions() {
+		var options = {
+			basemap: new Basemap({
+				id: "Hybrid",
+				layers: [
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" }),
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer" }),
+					new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer" })
+				]
+			}),
+			showAttribution: true
+
+		};
+		var extent = getExtentFromDataAttribute();
+		if (extent) {
+			options.extent = extent;
+		} else {
+			options.center = [-120.80566406246835, 47.41322033015946];
+			options.zoom = 7;
+		}
+
+
+		return options;
+	}
+
 	// Create the map.
-	map = new Map("map", {
-		basemap: new Basemap({
-			id: "Hybrid",
-			layers: [
-				new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" }),
-				new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer" }),
-				new BasemapLayer({ url: protocol + "//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer" })
-			]
-		}),
-		center: [-120.80566406246835, 47.41322033015946],
-		zoom: 7,
-		showAttribution: true
-	});
+	map = new Map("map", createMapOptions());
+
+	map.on("extent-change", function (e) { console.log(e); });
 
 
 	// Setup events to show a progress bar when the map is updating.

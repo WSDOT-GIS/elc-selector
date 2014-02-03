@@ -5,6 +5,7 @@
 iframe {
 	width: 640px;
 	height: 480px;
+	display: inline-block;
 }
 
 iframe + table, iframe + table + section {
@@ -63,7 +64,7 @@ table td:last-child {
 	margin: 1em 0.2em;
 }
 
-.instructions > section {
+section.instruction, .instructions > section {
 	display: inline-block;
 	vertical-align: top;
 	background-color: lightblue;
