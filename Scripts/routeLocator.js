@@ -31,6 +31,44 @@ require([
 	waPrj = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +to_meter=0.3048006096012192 +no_defs";
 	mapPrj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
 
+	/** Reduces the name of the route.
+	 * @param {string} name
+	 * @returns {string}
+	 */
+	function reduceRouteName(name) {
+		var output = name;
+		var streetAndCrossStreetRe = /(?:([^&]+)\s&\s+([^,]+),\s([^,]+),\s([a-z]+)\s(\d+))\s-\s(?:(?:([^&]+)\s&\s+\1,\s\3,\s\4\s\5)|(?:\1\s&\s+([^,]+),\s\3,\s\4\s\5)|(?:([^&]+)\s&\s+\2,\s\3,\s\4\s\5)|(?:\2\s&\s+([^,]+),\s\3,\s\4\s\5))/i;
+		var match = name.match(streetAndCrossStreetRe);
+
+		var mainStreet, cross1, cross2, city, state, zip;
+		if (match) {
+			city = match[3];
+			state = match[4];
+			zip = match[5];
+			if (match[6]) {
+				mainStreet = match[1];
+				cross1 = match[2];
+				cross2 = match[6];
+			} else if (match[7]) {
+				mainStreet = match[2];
+				cross1 = match[1];
+				cross2 = match[7];
+			} else if (match[8]) {
+				mainStreet = match[1];
+				cross1 = match[2];
+				cross2 = match[8];
+			} else {
+				mainStreet = match[2];
+				cross1 = match[1];
+				cross2 = match[9];
+			}
+
+			output = [mainStreet, " from ", cross1, " to ", cross2, ", ", city, ", ", state, " ", zip].join("");
+
+		}
+		return output;
+	}
+
 	/** @typedef {(string|proj4.Proj)} Projection
 	 * 
 	 */
@@ -498,21 +536,30 @@ require([
 			}
 		});
 
-		function solveHandler(solveResults) {
-			/* 
-			@param {Array} solveResults.barriers
-			@param {Array} solveResults.messages
-			@param {Array} solveResults.polygonBarriers
-			@param {Array} solveResults.polylineBarriers
-			@param {esri.tasks.RouteResult[]} solveResults.routeResults
+		/**
+		 * @typedef {Object} esri.tasks.RouteResult
+		 * @property {Graphic} route
+		 * @property {string} routeName
+		 */
 
-			{Graphic} routeResult.route
-			{string} routeResult.routeName
-			*/
-			var i, l;
+		/**
+		 * @typedef {Object.<string,Array>} SolveResults
+		 * @property {Array} barriers
+		 * @property {Array} messages
+		 * @property {Array} polygonBarriers
+		 * @property {Array} polylineBarriers
+		 * @property {esri.tasks.RouteResult[]} routeResults
+		 */
+
+		/**
+		 * @param {SolveResults} solveResults
+		*/
+		function solveHandler(solveResults) {
+			var i, l, route;
 			if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
 				for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
-					routesLayer.add(solveResults.routeResults[i].route);
+					route = solveResults.routeResults[i].route;
+					routesLayer.add(route);
 				}
 			}
 
