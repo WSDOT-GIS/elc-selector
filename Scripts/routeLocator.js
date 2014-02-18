@@ -37,7 +37,7 @@ require([
 	 */
 	function reduceRouteName(name) {
 		var output = name;
-		var streetAndCrossStreetRe = /(?:([^&]+)\s&\s+([^,]+),\s([^,]+),\s([a-z]+)\s(\d+))\s-\s(?:(?:([^&]+)\s&\s+\1,\s\3,\s\4\s\5)|(?:\1\s&\s+([^,]+),\s\3,\s\4\s\5)|(?:([^&]+)\s&\s+\2,\s\3,\s\4\s\5)|(?:\2\s&\s+([^,]+),\s\3,\s\4\s\5))/i;
+		var streetAndCrossStreetRe = /(?:([^&]+)\s&\s+([^,]+),\s([^,]+),\s([a-z]+)\s+(\d+))\s-\s(?:(?:([^&]+)\s&\s+\1,\s\3,\s\4\s+\5)|(?:\1\s&\s+([^,]+),\s\3,\s\4\s+\5)|(?:([^&]+)\s&\s+\2,\s\3,\s\4\s+\5)|(?:\2\s&\s+([^,]+),\s\3,\s\4\s+\5))/i;
 		var match = name.match(streetAndCrossStreetRe);
 
 		var mainStreet, cross1, cross2, city, state, zip;
@@ -559,6 +559,9 @@ require([
 			if (solveResults && solveResults.routeResults && solveResults.routeResults.length) {
 				for (i = 0, l = solveResults.routeResults.length; i < l; i += 1) {
 					route = solveResults.routeResults[i].route;
+					if (route.attributes.Name) {
+						route.attributes.Name = reduceRouteName(route.attributes.Name);
+					}
 					routesLayer.add(route);
 				}
 			}
