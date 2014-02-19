@@ -31,7 +31,7 @@ require([
 	waPrj = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +to_meter=0.3048006096012192 +no_defs";
 	mapPrj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
 
-	/** Reduces the name of the route.
+	/** Reduces the name of the route. See Notes.md for detailed description of how this method works.
 	 * @param {string} name
 	 * @returns {string}
 	 */
