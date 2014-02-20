@@ -2,6 +2,8 @@
 
 Developed for the WSDOT Construction Impact Analysis (CIA) application, this control that can be used to select a road segment between two intersections.
 
+For background on why the control is structured in this way (i.e., a separate page inside of an `iframe`) see the [ArcGIS-JS-with-AJAX-Control-Toolkit] project documentation.
+
 ## Getting started ##
 
 In order to run this application you will need to [create OAuth Credentials] to access Esri's secure services. Once you have done this, perform the following steps.
@@ -122,3 +124,4 @@ Licensed under [The MIT License]. See the [LICENSE] file for details.
 [create OAuth Credentials]:http://resources.arcgis.com/en/help/arcgis-rest-api/#/Accessing_services_provided_by_Esri/02r300000268000000/
 [The MIT License]:http://opensource.org/licenses/MIT
 [LICENSE]:LICENSE
+[ArcGIS-JS-with-AJAX-Control-Toolkit]:https://github.com/WSDOT-GIS/ArcGIS-JS-with-AJAX-Control-Toolkit
