@@ -10,6 +10,7 @@ require([
 	"esri/symbols/SimpleLineSymbol",
 	"esri/graphic",
 	"esri/SpatialReference",
+	"esri/geometry/jsonUtils",
 	"esri/geometry/Extent",
 	"esri/geometry/Polyline",
 	"esri/InfoTemplate",
@@ -21,10 +22,76 @@ require([
 	"elc",
 	"dojo/_base/connect"
 ], function (urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
-		SimpleLineSymbol, Graphic, SpatialReference, Extent, Polyline, InfoTemplate, Basemap, BasemapLayer,
-		RouteParameters, FeatureSet, Units, elc, connect) {
+		SimpleLineSymbol, Graphic, SpatialReference, jsonUtils, Extent, Polyline,
+		InfoTemplate, Basemap, BasemapLayer,
+		RouteParameters, FeatureSet, Units, elc, connect
+) {
 	"use strict";
-	var map, stopsLayer, routesLayer, protocol;
+	var map, stopsLayer, routesLayer, protocol, routeLocator;
+
+	/** Splits a camel-case or Pascal-case variable name into individual words.
+	 * @param {string} s
+	 * @returns {string[]}
+	 */
+	function splitWords(s) {
+		var re, match, output = [];
+		// re = /[A-Z]?[a-z]+/g
+		re = /([A-Za-z]?)([a-z]+)/g;
+
+		/*
+		matches example: "oneTwoThree"
+		["one", "o", "ne"]
+		["Two", "T", "wo"]
+		["Three", "T", "hree"]
+		*/
+
+		match = re.exec(s);
+		while (match) {
+			// output.push(match.join(""));
+			output.push([match[1].toUpperCase(), match[2]].join(""));
+			match = re.exec(s);
+		}
+
+		return output;
+
+	}
+
+	/**
+	 * Formats the date object into month/day/year format.
+	 * @param {Date} date
+	 * @returns {string}
+	 */
+	function formatDate(date) {
+		return [date.getMonth() + 1, date.getDay(), date.getFullYear()].join("/");
+	}
+
+	/**
+	 * Formats a graphic's attributes into an HTML table.
+	 * @param {esri/Graphic} graphic
+	 * @returns {HTMLTableElement}
+	 */
+	function toHtmlTable(graphic) {
+		var attributes, table, row, cell, value, omitNamesRe;
+		attributes = graphic.attributes;
+		table = document.createElement("table");
+		omitNamesRe = /(?:(?:Id)|(?:EventPoint)|(?:RouteGeometry))/i;
+		for (var name in attributes) {
+			if (attributes.hasOwnProperty(name)) {
+				value = attributes[name];
+				if (value !== null && value !== "" && !omitNamesRe.test(name) && !(name === "Back" && !value)) {
+					row = table.insertRow(-1);
+					cell = row.insertCell(-1);
+					cell.textContent = splitWords(name).join(" ");
+					cell = row.insertCell(-1);
+					if (value instanceof Date) {
+						value = formatDate(value);
+					}
+					cell.textContent = value;
+				}
+			}
+		}
+		return table;
+	}
 
 	/**
 	 * Gets the extent from the iframe's data-extent attribute (if it exists).
@@ -47,8 +114,22 @@ require([
 		return extent;
 	}
 
+	function routeLocationToGraphic(routeLocation) {
+		var geometry = jsonUtils.fromJson(routeLocation.RouteGeometry);
+		var attributes = {};
+		for (var propName in routeLocation) {
+			if (routeLocation.hasOwnProperty(propName)) {
+				attributes[propName] = routeLocation[propName];
+			}
+		}
+		var graphic = new Graphic(geometry, null, attributes);
+		return graphic;
+	}
+
 	// Store the protocol (e.g., "https:")
 	protocol = window.location.protocol;
+
+	routeLocator = new elc.RouteLocator();
 
 	/** Disables the clear and delete buttons of there are no graphics in the map.
 	 */
@@ -164,8 +245,6 @@ require([
 	// Create the map.
 	map = new Map("map", createMapOptions());
 
-	map.on("extent-change", function (e) { console.log(e); });
-
 	// Setup events to show a progress bar when the map is updating.
 	connect.connect(map, "onUpdateStart", function () {
 		document.getElementById("mapProgress").style.visibility = "";
@@ -174,36 +253,6 @@ require([
 	connect.connect(map, "onUpdateEnd", function () {
 		document.getElementById("mapProgress").style.visibility = "hidden";
 	});
-
-	/////** Performs an action based on a message passed to the window from a parent.
-	//// * @param {MessageEvent} e
-	//// * @param {Object} e.data
-	//// * @param {string} e.data.action - The action name. E.g., "delete"
-	//// * @param {string} e.data.name - The name of the route. E.g., "Hewitt Ave & 20th St SE, Lake Stevens, Washington  98258 - Hewitt Ave & 20th St SE, Lake Stevens, Washington  98258"
-	//// * @param {string} [e.data.wkt] - The 2927 Simple Geometry WKT of the route. This property will only be present if action is "add".
-	//// */
-	////function handleRouteMessage(e) {
-	////	var data = e.data, graphic, extent;
-	////	if (data.action === "delete") {
-	////		deleteGraphicWithMatchingName(data.name);
-	////	} else if (data.action === "add") {
-	////		try {
-	////			graphic = ciaRouteToFeature(e.data);
-	////			routesLayer.add(graphic);
-	////			// Zoom the map to the graphic
-	////			extent = graphic.geometry.getExtent();
-	////			map.setExtent(extent);
-	////		} catch (err) {
-	////			window.parent.postMessage({
-	////				error: err.message,
-	////				sourceMessage: e.data
-	////			}, [location.protocol, location.host].join("//"));
-	////		}
-	////	}
-	////}
-
-	////// Add an event handler for messages passed to this window while hosted in an iframe from the parent window.
-	////window.addEventListener("message", handleRouteMessage);
 
 	// Create the event handler for when the map finishes loading...
 	map.on("load", function () {
@@ -216,7 +265,7 @@ require([
 		stopsLayer = new GraphicsLayer({
 			id: "stops"
 		});
-		stopsLayer.setInfoTemplate(new InfoTemplate("Address", "${Name}"));
+		stopsLayer.setInfoTemplate(new InfoTemplate("Route Point", toHtmlTable));
 		symbol = new SimpleMarkerSymbol();
 		symbol.setColor("00ccff");
 		stopsLayer.setRenderer(new SimpleRenderer(symbol));
@@ -226,7 +275,7 @@ require([
 		routesLayer = new GraphicsLayer({
 			id: "routes"
 		});
-		routesLayer.setInfoTemplate(new InfoTemplate("Route", "${Name}"));
+		routesLayer.setInfoTemplate(new InfoTemplate("Route", "${*}"));
 		symbol = new SimpleLineSymbol();
 		symbol.setColor("00ccff");
 		symbol.setWidth(10);
@@ -241,42 +290,35 @@ require([
 			layer.on("graphic-add", postGraphicAddMessage);
 			layer.on("graphic-remove", postGraphicRemoveMessage);
 		});
-		
 
 		// Setup the map click event that will call the geocoder service.
 		map.on("click", function (evt) {
+			var graphics;
 			if (evt.mapPoint) {
-				////locator.locationToIntersection(evt.mapPoint, 10, function (/*esri.tasks.AddressCandidate*/ addressCandidate) {
-				////	var graphic = new Graphic();
-				////	graphic.setGeometry(addressCandidate.location);
-				////	graphic.setAttributes({
-				////		Name: addressCandidateToSingleLine(addressCandidate)
-				////	});
-				////	stopsLayer.add(graphic);
-				////}, function (error) {
-				////	window.console.error(error);
-				////});
-			}
-		});
-
-		// Setup the map double-click event to call the route service when two or more geocoded points are displayed on the map.
-		map.on("dbl-click", function (event) {
-			if (event.mapPoint && stopsLayer.graphics.length >= 2) {
-				////var routeParams, features;
-
-				////features = new FeatureSet();
-				////features.features = stopsLayer.graphics;
-				////routeParams = new RouteParameters();
-				////routeParams.stops = features;
-				////routeParams.returnRoutes = true;
-				////routeParams.returnDirections = false;
-				////routeParams.directionsLengthUnits = Units.MILES;
-				////routeParams.outSpatialReference = map.spatialReference;
-				////routeParams.restrictionAttributes = ["none"];
-
-				////routeTask.solve(routeParams, solveHandler, function (error) {
-				////	window.console.error(error);
-				////});
+				routeLocator.findNearestRouteLocations({
+					coordinates: [evt.mapPoint.x, evt.mapPoint.y],
+					referenceDate: new Date(),
+					searchRadius: 50,
+					inSR: map.spatialReference.wkid,
+					outSR: map.spatialReference.wkid,
+					successHandler: function (data) {
+						if (data.length === 0) {
+							alert("No route locations found near where you clicked.");
+						} else {
+							graphics = data.map(routeLocationToGraphic);
+							graphics.forEach(function (g) {
+								stopsLayer.add(g);
+							});
+						}
+					},
+					errorHandler: function (err) {
+						if (console) {
+							if (console.error) {
+								console.error(err);
+							}
+						}
+					}
+				});
 			}
 		});
 	});
