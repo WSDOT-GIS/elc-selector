@@ -1,0 +1,6 @@
+[submodule "Scripts/elc-js"]
+	path = Scripts/elc-js
+	url = https://github.com/WSDOT-GIS/elc-js.git
+[submodule "Scripts\\elc-js"]
+	path = Scripts\\elc-js
+	url = https://github.com/WSDOT-GIS/elc-js.git

@@ -62,15 +62,17 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Demos\route-limit-demo.html" />
     <Content Include="Demos\demo.html" />
     <Content Include="Demos\Scripts\demo.js" />
     <Content Include="Demos\Style\demo.css" />
     <Content Include="index.html" />
     <Content Include="routeLocator.html" />
+    <Content Include="Scripts\elc-js\elc.js" />
+    <Content Include="Scripts\elc-js\elc.min.js" />
     <Content Include="Scripts\routeLocator.js" />
     <Content Include="Scripts\wsdot\tasks\intersectionLocator.js" />
     <Content Include="packages.config" />
+    <Content Include="Scripts\elc-js\elc.min.js.map" />
     <None Include="Scripts\_references.js" />
     <Content Include="Style\routeLocator.css" />
     <Content Include="Web.config">
