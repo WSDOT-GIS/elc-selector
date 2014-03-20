@@ -208,12 +208,6 @@ require([
 	document.getElementById("deleteButton").addEventListener("click", deleteStopOrRoute);
 	document.getElementById("clearButton").addEventListener("click", deleteStopOrRoute);
 
-	// Set the routing URL to use a proxy.  The proxy will handle getting tokens.
-	urlUtils.addProxyRule({
-		proxyUrl: "proxy.ashx",
-		urlPrefix: protocol + "//route.arcgis.com"
-	});
-
 	/**
 	 * Creates the map options object for the Map constructor.
 	 * @returns {Object}
