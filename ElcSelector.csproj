@@ -45,6 +45,7 @@
     <Content Include="Demos\Style\demo.css" />
     <Content Include="index.html" />
     <Content Include="routeLocator.html" />
+    <Content Include="Scripts\elc-arcgis-utils.js" />
     <Content Include="Scripts\elc-js\elc.js" />
     <Content Include="Scripts\elc-js\elc.min.js" />
     <Content Include="Scripts\routeLocator.js" />

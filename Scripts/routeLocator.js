@@ -20,14 +20,139 @@ require([
 	"esri/tasks/FeatureSet",
 	"esri/units",
 	"elc",
+	"elc-arcgis-utils",
 	"dojo/_base/connect"
 ], function (urlUtils, Map, GraphicsLayer, RouteTask, SimpleRenderer, SimpleMarkerSymbol,
 		SimpleLineSymbol, Graphic, SpatialReference, jsonUtils, Extent, Polyline,
 		InfoTemplate, Basemap, BasemapLayer,
-		RouteParameters, FeatureSet, Units, elc, connect
+		RouteParameters, FeatureSet, Units, elc, elcArcGisUtils, connect
 ) {
 	"use strict";
-	var map, stopsLayer, routesLayer, protocol, routeLocator;
+	var map, pointsLayer, segmentsLayer, protocol, routeLocator;
+
+	function compareRouteLocationsByArm(a, b) {
+		return (a.Arm < b.Arm) ? -1 : (a.Arm > b.Arm) ? 1 : 0;
+	}
+
+	function RouteCollectionGroup() {
+		this.increase = null;
+		this.decrease = null;
+	}
+
+	/** Adds a RouteLocation to the array if it is an endpoint of the route segement.
+	 * @param {RouteLocation[]} routeLocations - An array of RouteLocations. Can contain up to two objects. All elements must be from the same route and same direction.
+	 * @param {RouteLocation} newRL - A route location to add to the routeLocations array. If this value is null or "falsey" then the "routeLocations" array will not be modified.
+	 * @exception {TypeError} Thrown if "routeLocations" is null or undefined.
+	 */
+	function addToArrayIfAnEndpoint(routeLocations, newRL) {
+		if (!routeLocations) {
+			throw new TypeError("The routeLocations parameter was not provided.");
+		} else if (routeLocations.length > 2) {
+			// If there are more than two objects, the array will be sorted by ARM and 
+			// then all but the first and last object will be removed from the array.
+			routeLocations.sort(compareRouteLocationsByArm);
+			routeLocations.splice(1, routeLocations.length - 2);
+		}
+		if (newRL) {
+			if (routeLocations.length === 0) {
+				// If the array is currently empty then the route location is simply added to it.
+				routeLocations.push(newRL);
+			} else if (routeLocations.length === 1) {
+				// If the array has only one element the new element is added to either the 
+				// beginning or ending of the array, depending on its ARM value.
+				if (newRL.Arm > routeLocations[0].Arm) {
+					routeLocations.push(newRL);
+				} else {
+					routeLocations.splice(0, 0, newRL);
+				}
+			} else {
+				// If there are more than two elements already in the array the new element will
+				// only be added if its ARM value is not between the ARM values of the elements
+				// already in the array.
+				if (newRL.Arm < routeLocations[0].Arm) {
+					routeLocations.splice(0, 1, newRL);
+				} else if (newRL.Arm > routeLocations[1].Arm) {
+					routeLocations.splice(1, 1, newRL);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Adds the route location to the appropriate array (either increase or decrease)
+	 * if its ARM value is outside of the start and end points already in the array.
+	 * @param {RouteLocation} routeLocation
+	 */
+	RouteCollectionGroup.prototype.add = function (routeLocation) {
+		if (!routeLocation) {
+			throw new TypeError();
+		}
+
+		if (routeLocation.decrease) {
+			if (!this.decrease) {
+				this.decrease = [];
+			}
+			addToArrayIfAnEndpoint(this.decrease, routeLocation);
+		} else {
+			if (!this.increase) {
+				this.increase = [];
+			}
+			addToArrayIfAnEndpoint(this.increase, routeLocation);
+		}
+	};
+
+	/**
+	 * @returns {RouteLocation[]}
+	 */
+	RouteCollectionGroup.prototype.toRouteLocations = function () {
+		var output = [], rl;
+
+		function addToOutputArray(arr) {
+			rl = new elc.RouteLocation();
+			if (arr && arr.length) {
+				rl.Route = arr[0].Route;
+				rl.Arm = arr[0].Arm;
+				rl.Decrease = arr[0].Decrease;
+				if (arr.length > 1) {
+					rl.EndArm = arr[1].Arm;
+				}
+				output.push(rl);
+			}
+		}
+
+		addToOutputArray(this.increase);
+		addToOutputArray(this.decrease);
+
+		return output;
+	};
+
+	////RouteCollectionGroup.prototype.sort = function () {
+	////	if (this.increase) {
+	////		this.increase.sort(compareRouteLocationsByArm);
+	////	}
+
+	////	if (this.decrease) {
+	////		this.decrease.sort(compareRouteLocationsByArm);
+	////	}
+	////};
+
+	/**
+	 * @param {RouteLocation[]} routeLocations
+	 * @returns {Object.<string, RouteCollectionGroup>}
+	 */
+	function groupRouteLocations(routeLocations) {
+		var output = {};
+
+		routeLocations.forEach(function (rl) {
+			// Create a property
+			if (!output.hasOwnProperty(rl.Route)) {
+				output[rl.Route] = new RouteCollectionGroup();
+			}
+			output[rl.Route].add(rl);
+		});
+
+		return output;
+	}
 
 	/** Splits a camel-case or Pascal-case variable name into individual words.
 	 * @param {string} s
@@ -135,7 +260,7 @@ require([
 	 */
 	function setDisabledStatusOfButtons() {
 		var deleteButton = document.getElementById("deleteButton"), clearButton = document.getElementById("clearButton");
-		deleteButton.disabled = clearButton.disabled = !(stopsLayer.graphics.length > 0 || routesLayer.graphics.length > 0);
+		deleteButton.disabled = clearButton.disabled = !(pointsLayer.graphics.length > 0 || segmentsLayer.graphics.length > 0);
 	}
 
 	/** @callback {LayerGraphicEvent}
@@ -190,17 +315,17 @@ require([
 	 */
 	function deleteStopOrRoute(e) {
 		var buttonId = e.target.id;
-		if (stopsLayer.graphics.length > 0) {
+		if (pointsLayer.graphics.length > 0) {
 			if (buttonId === "clearButton") {
-				stopsLayer.clear();
+				pointsLayer.clear();
 			} else {
-				removeLastGraphic(stopsLayer);
+				removeLastGraphic(pointsLayer);
 			}
-		} else if (routesLayer.graphics.length > 0) {
+		} else if (segmentsLayer.graphics.length > 0) {
 			if (buttonId === "clearButton") {
-				routesLayer.clear();
+				segmentsLayer.clear();
 			} else {
-				removeLastGraphic(routesLayer);
+				removeLastGraphic(segmentsLayer);
 			}
 		}
 	}
@@ -256,28 +381,28 @@ require([
 		map.disableDoubleClickZoom();
 
 		// Create the graphics layer that will be used to show the stop graphics.
-		stopsLayer = new GraphicsLayer({
+		pointsLayer = new GraphicsLayer({
 			id: "stops"
 		});
-		stopsLayer.setInfoTemplate(new InfoTemplate("Route Point", toHtmlTable));
+		pointsLayer.setInfoTemplate(new InfoTemplate("Route Point", toHtmlTable));
 		symbol = new SimpleMarkerSymbol();
 		symbol.setColor("00ccff");
-		stopsLayer.setRenderer(new SimpleRenderer(symbol));
-		map.addLayer(stopsLayer);
+		pointsLayer.setRenderer(new SimpleRenderer(symbol));
+		map.addLayer(pointsLayer);
 
 		// Create the routes graphics layer.
-		routesLayer = new GraphicsLayer({
+		segmentsLayer = new GraphicsLayer({
 			id: "routes"
 		});
-		routesLayer.setInfoTemplate(new InfoTemplate("Route", "${*}"));
+		segmentsLayer.setInfoTemplate(new InfoTemplate("Route", "${*}"));
 		symbol = new SimpleLineSymbol();
 		symbol.setColor("00ccff");
 		symbol.setWidth(10);
-		routesLayer.setRenderer(new SimpleRenderer(symbol));
-		map.addLayer(routesLayer);
+		segmentsLayer.setRenderer(new SimpleRenderer(symbol));
+		map.addLayer(segmentsLayer);
 
 		// Assign event handlers to layers.
-		[stopsLayer, routesLayer].forEach(function (layer) {
+		[pointsLayer, segmentsLayer].forEach(function (layer) {
 			layer.on("graphic-add", setDisabledStatusOfButtons);
 			layer.on("graphic-remove", setDisabledStatusOfButtons);
 
@@ -301,7 +426,7 @@ require([
 						} else {
 							graphics = data.map(routeLocationToGraphic);
 							graphics.forEach(function (g) {
-								stopsLayer.add(g);
+								pointsLayer.add(g);
 							});
 						}
 					},
@@ -314,6 +439,57 @@ require([
 					}
 				});
 			}
+		});
+
+		map.on("dbl-click", function (/*evt*/) {
+			var routeCollectionGroups = groupRouteLocations(pointsLayer.graphics.map(function (g) {
+				return new elc.RouteLocation(g.attributes);
+			}));
+
+			var routeLocations = [], rc, arr;
+
+			function addToRLArray(r) {
+				routeLocations.push(r);
+			}
+
+			for (var routeName in routeCollectionGroups) {
+				if (routeCollectionGroups.hasOwnProperty(routeName)) {
+					rc = routeCollectionGroups[routeName];
+					arr = rc.toRouteLocations();
+					arr.forEach(addToRLArray);
+				}
+			}
+
+			// Give each element a unique ID.
+			routeLocations.forEach(function (v, i) {
+				v.Id = i;
+			});
+
+			var params = {
+				locations: routeLocations,
+				referenceDate: Date.now(),
+				outSR: map.spatialReference.wkid,
+				successHandler: function (/**{RouteLocation[]}*/ routeLocations) {
+					pointsLayer.clear();
+					// Loop through each of the route locations. Convert to a graphic and add to the appropriate graphics layer.
+					routeLocations.forEach(function (rl) {
+						var graphic = elcArcGisUtils.routeLocationToGraphic(rl);
+						var layer;
+						if (graphic && graphic.geometry && graphic.geometry.type) {
+							layer = /point/i.test(graphic.geometry.type) ? pointsLayer : segmentsLayer;
+							layer.add(graphic);
+						}
+					});
+					console.log("route segments", routeLocations);
+				},
+				errorHandler: function (error) {
+					error.input = params;
+					console.error("error retrieving route segments.", error);
+				}
+			};
+
+			routeLocator.findRouteLocations(params);
+
 		});
 	});
 });
