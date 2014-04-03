@@ -22,7 +22,6 @@
 	////	}, [location.protocol, location.host].join("//"));
 	////}
 
-
 	////function addRoute(/**{Event}*/ e) {
 	////	// Get the values from the text boxes.
 	////	var form = e.srcElement || e.target, name = form[0].value, wkt = form[1].value;

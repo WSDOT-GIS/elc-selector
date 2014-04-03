@@ -47,9 +47,13 @@
     <Content Include="routeLocator.html" />
     <Content Include="Scripts\elc-arcgis-utils.js" />
     <Content Include="Scripts\elc-js\elc.js" />
-    <Content Include="Scripts\elc-js\elc.min.js" />
+    <Content Include="Scripts\elc-js\elc.min.js">
+      <DependentUpon>elc.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\routeLocator.js" />
-    <Content Include="Scripts\elc-js\elc.min.js.map" />
+    <Content Include="Scripts\elc-js\elc.min.js.map">
+      <DependentUpon>elc.min.js</DependentUpon>
+    </Content>
     <None Include="Scripts\_references.js" />
     <Content Include="Style\routeLocator.css" />
   </ItemGroup>
