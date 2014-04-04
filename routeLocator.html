@@ -14,21 +14,27 @@
 		<progress id="mapProgress">Updating map...</progress>
 	</div>
 	<script>
-		var dojoConfig = {
-			async: true,
-			packages: [
-				{
-					name: "elc",
-					location: "/./Scripts/elc-js",
-					main: "elc"
-				},
-				{
-					name: "elc-arcgis-utils",
-					location: "/./Scripts/",
-					main: "elc-arcgis-utils"
-				}
-			]
-		};
+		(function () {
+			var re = /[^/]+$/;
+			var fullPath = location.origin + location.pathname;
+			fullPath = fullPath.replace(re, "");
+			var dojoConfig = {
+				async: true,
+				packages: [
+					{
+						name: "elc",
+						location: fullPath + "Scripts/elc-js",
+						main: "elc"
+					},
+					{
+						name: "elc-arcgis-utils",
+						location: fullPath + "Scripts",
+						main: "elc-arcgis-utils"
+					}
+				]
+			};
+			window.dojoConfig = dojoConfig;
+		}());
 	</script>
 	<script src="//js.arcgis.com/3.8compact/"></script>
 	<script src="//cdn-geoweb.s3.amazonaws.com/terraformer/1.0.2/terraformer.min.js"></script>
