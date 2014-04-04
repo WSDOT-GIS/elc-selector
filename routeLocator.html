@@ -14,17 +14,20 @@
 		<progress id="mapProgress">Updating map...</progress>
 	</div>
 	<script>
+		var re = /[^/]+$/;
+		var fullPath = location.origin + location.pathname;
+		fullPath = fullPath.replace(re, fullPath);
 		var dojoConfig = {
 			async: true,
 			packages: [
 				{
 					name: "elc",
-					location: "/./Scripts/elc-js",
+					location: fullPath + "Scripts/elc-js",
 					main: "elc"
 				},
 				{
 					name: "elc-arcgis-utils",
-					location: "/./Scripts/",
+					location: fullPath + "Scripts",
 					main: "elc-arcgis-utils"
 				}
 			]
