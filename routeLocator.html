@@ -16,7 +16,7 @@
 	<script>
 		var re = /[^/]+$/;
 		var fullPath = location.origin + location.pathname;
-		fullPath = fullPath.replace(re, fullPath);
+		fullPath = fullPath.replace(re, "");
 		var dojoConfig = {
 			async: true,
 			packages: [
