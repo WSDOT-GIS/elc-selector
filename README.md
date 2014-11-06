@@ -13,9 +13,3 @@ This repository branched off of https://github.com/WSDOT-GIS/CIA-Local-Roads-Sel
 ## Development environment ##
 
 This project was created in Visual Studio 2013.
-
-## License ##
-Licensed under [The MIT License]. See the [LICENSE] file for details.
-
-[The MIT License]:http://opensource.org/licenses/MIT
-[LICENSE]:LICENSE
